@@ -34,32 +34,32 @@ const CONTEXTO_DEFAULT = {
 
 const {
   procesarBusquedaServiciosBasicos,
-} = require("./geinz_bot/servicios_basicos.js");
+} = require("./servicios_basicos.js");
 
 const {
   procesarBusquedaTienda,
   resolverInfoNegocio,
-} = require("./geinz_bot/negocio.js");
+} = require("./negocio.js");
 
-const { procesarPromociones } = require("./geinz_bot/promociones.js");
+const { procesarPromociones } = require("./promociones.js");
 
-const { procesarEmergencia } = require("./geinz_bot/emergencia.js");
+const { procesarEmergencia } = require("./emergencia.js");
 
-const { llamarGeminiGeinz } = require("./geinz_bot/geinz.js");
+const { llamarGeminiGeinz } = require("./geinz.js");
 
 const {
   resolverInfoTurismo,
   procesarBusquedaTurismo,
-} = require("./geinz_bot/turismo.js");
+} = require("./turismo.js");
 
-const { guardarMensajeHistorial } = require("./historial_whatsapp.js");
+const { guardarMensajeHistorial } = require("../historial_whatsapp.js");
 
-const { descontarCreditosTienda } = require("./test_db2.js");
+const { descontarCreditosTienda } = require("../test_db2.js");
 
-const { programarTareaDebounce } = require("./tasks.js");
+const { programarTareaDebounce } = require("../tasks.js");
 
 const NUMERO_AVISO_INTERNO = "51937659216"; // mismo formato que usas en baneo_usr
-const { clasificarIntencion } = require("./geinz_bot/clasificador.js");
+const { clasificarIntencion } = require("./clasificador.js");
 async function enviarAvisoInterno(mensajeTexto) {
   try {
     await enviarMensajeWhatsapp(NUMERO_AVISO_INTERNO, mensajeTexto);

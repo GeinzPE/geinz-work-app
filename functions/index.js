@@ -149,25 +149,28 @@ exports.confirmarPagoPlan = confirmarPagoPlan;
 
 const {
   geinz_webhook_telegram
-} = require("./telegram_bot.js")
+} = require("./geinz_bot/telegram_bot")
 exports.geinz_webhook_telegram = geinz_webhook_telegram
 
-const {
-  dispensador_webhook_telegram
-} = require("./bot_restaurante_prueva/webhook_telegram_general")
-exports.dispensador_webhook_telegram = dispensador_webhook_telegram
 
 
 const { procesar_audio_whatsapp } = require("./wisper.js");
 exports.procesar_audio_whatsapp = procesar_audio_whatsapp;
 
 const {
+  dispensador_webhook_telegram
+} = require("./bot_restaurante_prueva/webhook_telegram_general")
+exports.dispensador_webhook_telegram = dispensador_webhook_telegram
+
+const {
   geinz_webhook_principal,
   geinz_procesar_buffer, geinz_aviso_qr_escaneado
-} = require("./dispensador_competo_geinz_pruevas.js");
+} = require("./geinz_bot/dispensador_competo_geinz_pruevas.js");
 exports.geinz_webhook_principal = geinz_webhook_principal;
 exports.geinz_procesar_buffer = geinz_procesar_buffer;
 exports.geinz_aviso_qr_escaneado = geinz_aviso_qr_escaneado
+
+
 const {
   crearOrdenCulqi, culqiWebhook, confirmarPago
 } = require("./pagos_geinz.js")

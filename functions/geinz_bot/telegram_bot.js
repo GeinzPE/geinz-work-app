@@ -18,19 +18,19 @@ const db = admin.firestore();
 // ---- Reutilizamos tus mismos módulos de negocio ----
 const {
   procesarBusquedaServiciosBasicos,
-} = require("./geinz_bot/servicios_basicos.js");
+} = require("./servicios_basicos.js");
 const {
   procesarBusquedaTienda,
   resolverInfoNegocio,
-} = require("./geinz_bot/negocio.js");
-const { procesarPromociones } = require("./geinz_bot/promociones.js");
-const { procesarEmergencia } = require("./geinz_bot/emergencia.js");
-const { llamarGeminiGeinz } = require("./geinz_bot/geinz.js");
+} = require("./negocio.js");
+const { procesarPromociones } = require("./promociones.js");
+const { procesarEmergencia } = require("./emergencia.js");
+const { llamarGeminiGeinz } = require("./geinz.js");
 const {
   resolverInfoTurismo,
   procesarBusquedaTurismo,
-} = require("./geinz_bot/turismo.js");
-const { guardarMensajeHistorial } = require("./historial_whatsapp.js"); // sirve igual, es genérico por numero_usuario
+} = require("./turismo.js");
+const { guardarMensajeHistorial } = require("../historial_whatsapp.js"); // sirve igual, es genérico por numero_usuario
 const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.API_KEYO_OPEN_IA });
 const BASE_URL_PERFIL_TIENDA = "https://geinztech.com/"; // + alias_tienda
@@ -219,7 +219,7 @@ async function actualizarContextoUsuarioTelegram(
   });
 }
 
-const { clasificarIntencion } = require("./geinz_bot/clasificador.js");
+const { clasificarIntencion } = require("./clasificador.js");
 
 // ============================================================
 // WEBHOOK PRINCIPAL DE TELEGRAM
