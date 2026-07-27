@@ -16,11 +16,17 @@ const algoliasearch = require("algoliasearch");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 
 const speech = require("@google-cloud/speech");
-
-const client_specth = new speech.SpeechClient();
-
+let _client_specth = null;
+function getSpeechClient() {
+  if (!_client_specth) _client_specth = new speech.SpeechClient();
+  return _client_specth;
+}
 const textToSpeech = require("@google-cloud/text-to-speech");
-const ttsClient = new textToSpeech.TextToSpeechClient();
+let _ttsClient = null;
+function getTtsClient() {
+  if (!_ttsClient) _ttsClient = new textToSpeech.TextToSpeechClient();
+  return _ttsClient;
+}
 const geofire = require("geofire-common");
 
 admin.initializeApp();
@@ -141,15 +147,15 @@ exports.webhookCulqiOrder_scagAI = webhookCulqiOrder_scagAI;
 exports.confirmarPagoPlan = confirmarPagoPlan;
 
 
-const{
+const {
   geinz_webhook_telegram
-}=require("./telegram_bot.js")
-exports.geinz_webhook_telegram=geinz_webhook_telegram
+} = require("./telegram_bot.js")
+exports.geinz_webhook_telegram = geinz_webhook_telegram
 
-const{
+const {
   dispensador_webhook_telegram
-}=require("./bot_restaurante_prueva/webhook_telegram_general")
-exports.dispensador_webhook_telegram=dispensador_webhook_telegram
+} = require("./bot_restaurante_prueva/webhook_telegram_general")
+exports.dispensador_webhook_telegram = dispensador_webhook_telegram
 
 
 const { procesar_audio_whatsapp } = require("./wisper.js");
@@ -157,18 +163,18 @@ exports.procesar_audio_whatsapp = procesar_audio_whatsapp;
 
 const {
   geinz_webhook_principal,
-  geinz_procesar_buffer,geinz_aviso_qr_escaneado
+  geinz_procesar_buffer, geinz_aviso_qr_escaneado
 } = require("./dispensador_competo_geinz_pruevas.js");
 exports.geinz_webhook_principal = geinz_webhook_principal;
 exports.geinz_procesar_buffer = geinz_procesar_buffer;
-exports.geinz_aviso_qr_escaneado=geinz_aviso_qr_escaneado
+exports.geinz_aviso_qr_escaneado = geinz_aviso_qr_escaneado
 const {
-  crearOrdenCulqi,culqiWebhook,confirmarPago
-} =require("./pagos_geinz.js")
+  crearOrdenCulqi, culqiWebhook, confirmarPago
+} = require("./pagos_geinz.js")
 
-exports.crearOrdenCulqi=crearOrdenCulqi
-exports.culqiWebhook=culqiWebhook
-exports.confirmarPago=confirmarPago
+exports.crearOrdenCulqi = crearOrdenCulqi
+exports.culqiWebhook = culqiWebhook
+exports.confirmarPago = confirmarPago
 
 
 const {
@@ -180,12 +186,19 @@ exports.notificarNuevoRegistroNegocio = notificarNuevoRegistroNegocio;
 
 
 
-const{
+const {
   enviarMensajeManual
-}=require("./CRM_envio_msje.js");
-exports.enviarMensajeManual=enviarMensajeManual;
+} = require("./CRM_envio_msje.js");
+exports.enviarMensajeManual = enviarMensajeManual;
 
 
+const { conectarFacebookPage } = require("./facebook_post/conectarFacebookPage.js");
+exports.conectarFacebookPage = conectarFacebookPage;
+
+const {
+  publicarEnFacebookOrganico
+} = require("./facebook_post/fb_post.js")
+exports.publicarEnFacebookOrganico = publicarEnFacebookOrganico
 
 const { syncProductoAlgolia, syncCategoriaAlgolia } = require('./algoliaSync');
 
@@ -197,11 +210,10 @@ const { qrApi } = require("./qrScanGeinz/qrGenerator.js");
 exports.qrApi = qrApi;
 
 
-
-
-const { geinz_webhook_principal_scag_ai,geinz_webhook_telegram_scag_ai } = require("./bot_scag_ai/principal.js");
+const { geinz_webhook_principal_scag_ai, geinz_webhook_telegram_scag_ai } = require("./bot_scag_ai/principal.js");
 exports.geinz_webhook_principal_scag_ai = geinz_webhook_principal_scag_ai;
 exports.geinz_webhook_telegram_scag_ai = geinz_webhook_telegram_scag_ai;
+
 
 // ==================== uso_wisper ====================
 
@@ -249,7 +261,7 @@ exports.transcribirAudio = onRequest(async (req, res) => {
     // limpiar tmp
     try {
       fs.unlinkSync(tmpFilePath);
-    } catch (e) {}
+    } catch (e) { }
 
     res.status(200).json({ texto: transcription.text });
   } catch (e) {
@@ -374,7 +386,7 @@ function parsearRespuestaJSON(raw) {
   try {
     const lista = JSON.parse(raw);
     if (Array.isArray(lista)) return lista;
-  } catch (_) {}
+  } catch (_) { }
 
   const start = raw.indexOf("[");
   const end = raw.lastIndexOf("]");
@@ -383,7 +395,7 @@ function parsearRespuestaJSON(raw) {
     try {
       const lista = JSON.parse(cleaned);
       if (Array.isArray(lista)) return lista;
-    } catch (_) {}
+    } catch (_) { }
   }
 
   return raw
@@ -491,23 +503,23 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
 
     const pagosQuery = Array.isArray(resultado?.metodos_pago)
       ? resultado.metodos_pago
-          .slice(0, MAX_ITEMS)
-          .map((p) => String(p).toLowerCase().trim())
-          .filter(Boolean)
+        .slice(0, MAX_ITEMS)
+        .map((p) => String(p).toLowerCase().trim())
+        .filter(Boolean)
       : [];
 
     const comodidadesQuery = Array.isArray(resultado?.comodidades)
       ? resultado.comodidades
-          .slice(0, MAX_ITEMS)
-          .map((c) => String(c).toLowerCase().trim())
-          .filter(Boolean)
+        .slice(0, MAX_ITEMS)
+        .map((c) => String(c).toLowerCase().trim())
+        .filter(Boolean)
       : [];
 
     const productosQuery = Array.isArray(resultado?.productos)
       ? resultado.productos
-          .slice(0, MAX_ITEMS)
-          .map((p) => String(p).toLowerCase().trim())
-          .filter(Boolean)
+        .slice(0, MAX_ITEMS)
+        .map((p) => String(p).toLowerCase().trim())
+        .filter(Boolean)
       : [];
 
     const query = (nombreTienda || productosQuery.join(" ")).slice(0, 200);
@@ -1305,24 +1317,24 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
       obtenerDatosPorIds(localidad, ids),
       idsConFlag.length > 0
         ? Promise.all(
-            idsConFlag.map((id) =>
-              obtener_creditos_tienda_fn(id)
-                .then((r) => {
-                  const mayor_a_100 = r?.creditos > 100;
-                  console.log(
-                    `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
-                  );
-                  return { id, mayor_a_100 };
-                })
-                .catch((e) => {
-                  console.error(
-                    `❌ [creditos] Error obteniendo créditos para ${id}:`,
-                    e.message,
-                  );
-                  return { id, mayor_a_100: false };
-                }),
-            ),
-          )
+          idsConFlag.map((id) =>
+            obtener_creditos_tienda_fn(id)
+              .then((r) => {
+                const mayor_a_100 = r?.creditos > 100;
+                console.log(
+                  `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
+                );
+                return { id, mayor_a_100 };
+              })
+              .catch((e) => {
+                console.error(
+                  `❌ [creditos] Error obteniendo créditos para ${id}:`,
+                  e.message,
+                );
+                return { id, mayor_a_100: false };
+              }),
+          ),
+        )
         : Promise.resolve([]),
     ]);
 
@@ -1474,12 +1486,12 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
       obtenerDatosPorIds(localidad, ids),
       idsConFlag.length > 0
         ? Promise.all(
-            idsConFlag.map((id) =>
-              obtener_creditos_tienda_fn(id)
-                .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
-                .catch(() => ({ id, mayor_a_100: false })),
-            ),
-          )
+          idsConFlag.map((id) =>
+            obtener_creditos_tienda_fn(id)
+              .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
+              .catch(() => ({ id, mayor_a_100: false })),
+          ),
+        )
         : Promise.resolve([]),
     ]);
 
