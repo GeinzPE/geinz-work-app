@@ -567,16 +567,25 @@
       return out;
     }
 
-    // Extrae un color dominante "razonable": ignora blancos, negros casi puros y
-    // píxeles transparentes (que normalmente son fondo, no marca), y agrupa colores
-    // similares (cuantización) para votar por el más frecuente.
-    function getDominantColor(canvas){
+    // Distancia euclidiana simple entre dos colores RGB (para medir "qué tan distintos" son).
+    function colorDistance(a, b){
+      return Math.sqrt(
+        Math.pow(a[0]-b[0], 2) + Math.pow(a[1]-b[1], 2) + Math.pow(a[2]-b[2], 2)
+      );
+    }
+
+    // Extrae hasta `maxColors` colores PREDOMINANTES reales del logo (no inventados):
+    // ignora blancos, negros casi puros y píxeles transparentes (normalmente fondo,
+    // no marca), cuantiza para agrupar tonos similares y vota por frecuencia. Luego
+    // selecciona colores que además sean diversos entre sí, para no terminar con
+    // 3 variantes casi idénticas del mismo azul.
+    function getDominantColors(canvas, maxColors = 3){
       const ctx = canvas.getContext('2d');
       const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const counts = {};
       const totalPixels = canvas.width * canvas.height;
       // Muestreamos para no recorrer millones de píxeles en logos grandes.
-      const targetSamples = 6000;
+      const targetSamples = 8000;
       const stepPixels = Math.max(1, Math.floor(totalPixels / targetSamples));
       const step = stepPixels * 4;
 
@@ -584,71 +593,121 @@
         const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
         if(a < 128) continue;
         const brightness = (r + g + b) / 3;
-        if(brightness > 240 || brightness < 18) continue;
+        if(brightness > 246 || brightness < 12) continue;
         const key = [Math.round(r/16)*16, Math.round(g/16)*16, Math.round(b/16)*16].join(',');
         counts[key] = (counts[key] || 0) + 1;
       }
 
-      let bestKey = null, bestCount = 0;
-      for(const k in counts){
-        if(counts[k] > bestCount){ bestCount = counts[k]; bestKey = k; }
+      const sorted = Object.keys(counts)
+        .map(k => ({ rgb: k.split(',').map(Number), count: counts[k] }))
+        .sort((a, b) => b.count - a.count);
+
+      if(!sorted.length) return [];
+
+      // Primero elige colores frecuentes y suficientemente distintos entre sí.
+      const picked = [sorted[0]];
+      const minDistance = 60;
+      for(let i = 1; i < sorted.length && picked.length < maxColors; i++){
+        const candidate = sorted[i];
+        const farEnough = picked.every(p => colorDistance(p.rgb, candidate.rgb) >= minDistance);
+        if(farEnough) picked.push(candidate);
       }
-      if(!bestKey) return null;
-      const [r, g, b] = bestKey.split(',').map(Number);
-      return '#' + [r, g, b].map(v => v.toString(16).padStart(2,'0')).join('');
+      // Si el logo es muy monocromático y no hay suficiente diversidad, completa
+      // con los siguientes más frecuentes (mejor tener 2-3 tonos cercanos que 1 solo).
+      for(let i = 1; i < sorted.length && picked.length < maxColors; i++){
+        if(!picked.includes(sorted[i])) picked.push(sorted[i]);
+      }
+
+      return picked.map(p => '#' + p.rgb.map(v => v.toString(16).padStart(2, '0')).join(''));
     }
 
-    // Convierte el logo en un círculo: recorta el whitespace sobrante, calcula el
-    // color dominante, y dibuja un aro de ese color alrededor de un centro blanco
-    // (mismo efecto visual que el aro de "Yape", pero calculado automáticamente).
-    function processLogoToCircle(dataUrl){
+    // Luminancia relativa aproximada, para poder ordenar colores de oscuro a claro.
+    function relativeLuminance(hex){
+      const c = hex.replace('#', '');
+      const r = parseInt(c.substring(0, 2), 16);
+      const g = parseInt(c.substring(2, 4), 16);
+      const b = parseInt(c.substring(4, 6), 16);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    // Arma el degradado del QR directamente a partir de los colores predominantes
+    // REALES del logo (no shades sintéticos de un solo tono). Los ordena de oscuro
+    // a claro para que el degradado fluya de forma natural.
+    function paletteFromLogoColors(colors){
+      if(!colors || !colors.length) return;
+      if(colors.length === 1){
+        paletteFromDominant(colors[0]);
+        return;
+      }
+      const sorted = [...colors].sort((a, b) => relativeLuminance(a) - relativeLuminance(b));
+      const p1 = sorted[0];
+      const p3 = sorted[sorted.length - 1];
+      const p2 = sorted.length >= 3 ? sorted[Math.floor(sorted.length / 2)] : lerpColor(p1, p3, 0.5);
+      applyCustomColorsFromHexes(p1, p2, p3);
+    }
+
+    // Dibuja el path de un rectángulo con esquinas redondeadas (squircle).
+    function roundedRectPath(ctx, x, y, w, h, r){
+      const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y,     x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x,     y + h, radius);
+      ctx.arcTo(x,     y + h, x,     y,     radius);
+      ctx.arcTo(x,     y,     x + w, y,     radius);
+      ctx.closePath();
+    }
+
+    // Convierte el logo en un badge "premium": recorta el whitespace sobrante,
+    // calcula los colores predominantes reales (se siguen usando para el degradado
+    // del QR, aunque ya no se dibujen como aro), y redondea las esquinas del logo
+    // (NO un círculo forzado, para no recortar logos rectangulares), llenando todo
+    // el cuadrado (modo "cover", sin bordes ni espacios vacíos) más una sombra
+    // suave para dar sensación de profundidad/calidad. La imagen del logo se deja
+    // tal cual está, sin marco de color alrededor.
+    function processLogoBadge(dataUrl){
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
           try{
             const trimmed = trimWhitespace(img);
-            const dominant = getDominantColor(trimmed);
+            const palette = getDominantColors(trimmed, 3);
 
             const size = 400;
-            const side = Math.min(trimmed.width, trimmed.height);
-            const sx = (trimmed.width - side) / 2;
-            const sy = (trimmed.height - side) / 2;
+            const outerRadius = size * 0.30;   // esquinas redondeadas tipo squircle
+            const pad = size * 0.015;          // margen mínimo respecto al hueco del QR
 
             const canvas = document.createElement('canvas');
             canvas.width = size;
             canvas.height = size;
             const ctx = canvas.getContext('2d');
 
-            const ringColor = dominant || '#ffffff';
-            const ringWidth = size * 0.055;
-
-            // Aro exterior de color (dominante del logo).
-            ctx.beginPath();
-            ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
-            ctx.closePath();
-            ctx.fillStyle = ringColor;
-            ctx.fill();
-
-            // Círculo interior blanco de respaldo (contraste garantizado para el logo).
-            ctx.beginPath();
-            ctx.arc(size/2, size/2, size/2 - ringWidth, 0, Math.PI * 2);
-            ctx.closePath();
+            // Sombra suave debajo del badge (premium/flotante), sin dibujar ningún aro de color.
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.28)';
+            ctx.shadowBlur = size * 0.05;
+            ctx.shadowOffsetY = size * 0.018;
+            roundedRectPath(ctx, pad, pad, size - pad * 2, size - pad * 2, outerRadius);
             ctx.fillStyle = '#ffffff';
             ctx.fill();
-
-            // Logo recortado (ya sin whitespace sobrante) encajado dentro del círculo blanco.
-            const innerPad = ringWidth * 0.9;
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(size/2, size/2, size/2 - ringWidth - innerPad*0.15, 0, Math.PI * 2);
-            ctx.closePath();
-            ctx.clip();
-            const innerSize = size - (ringWidth + innerPad) * 2;
-            const offset = (size - innerSize) / 2;
-            ctx.drawImage(trimmed, sx, sy, side, side, offset, offset, innerSize, innerSize);
             ctx.restore();
 
-            resolve({ dataUrl: canvas.toDataURL('image/png'), dominant });
+            // Logo encajado en modo "cover": llena TODO el cuadrado hasta el borde
+            // redondeado, sin espacio vacío alrededor ni marco de color.
+            ctx.save();
+            roundedRectPath(ctx, pad, pad, size - pad * 2, size - pad * 2, outerRadius);
+            ctx.clip();
+
+            const innerSize = size - pad * 2;
+            const scale = Math.max(innerSize / trimmed.width, innerSize / trimmed.height);
+            const drawW = trimmed.width * scale;
+            const drawH = trimmed.height * scale;
+            const dx = pad + (innerSize - drawW) / 2;
+            const dy = pad + (innerSize - drawH) / 2;
+            ctx.drawImage(trimmed, dx, dy, drawW, drawH);
+            ctx.restore();
+
+            resolve({ dataUrl: canvas.toDataURL('image/png'), palette });
           } catch(e){
             reject(e);
           }
@@ -683,13 +742,13 @@
         customCaptionText = config.captionText.trim();
       }
 
-      let dominantFromLogo = null;
+      let logoPalette = null;
 
       if(config.logo){
         try {
-          const processed = await processLogoToCircle(config.logo);
+          const processed = await processLogoBadge(config.logo);
           logoDataUrl = processed.dataUrl;
-          dominantFromLogo = processed.dominant;
+          logoPalette = processed.palette; // array de colores predominantes reales del logo
         } catch(e){
           logoDataUrl = null;
         }
@@ -697,12 +756,12 @@
         logoDataUrl = null;
       }
 
-      // Prioridad de color: colores explícitos > color dominante del logo > paleta por defecto.
+      // Prioridad de color: colores explícitos > colores predominantes del logo > paleta por defecto.
       const autoColor = config.autoColor !== false; // true por defecto
       if(config.colors && config.colors.length >= 3){
         applyCustomColorsFromHexes(config.colors[0], config.colors[1], config.colors[2]);
-      } else if(autoColor && dominantFromLogo){
-        paletteFromDominant(dominantFromLogo);
+      } else if(autoColor && logoPalette && logoPalette.length){
+        paletteFromLogoColors(logoPalette);
       }
 
       const finalUrl = normalizeUrl(config.url || '');

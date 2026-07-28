@@ -3,13 +3,14 @@ const admin = require("firebase-admin");
 const algoliasearch = require("algoliasearch");
 const OpenAI = require("openai");
 
-const { guardarMensajeHistorial } = require("../historial_whatsapp.js");
+// 👇 ÚNICO import de envío que se permite en este archivo: la función
+// que decide WhatsApp/Telegram y con/sin ubicación. Ya NO hay fetch
+// directo a Meta ni a Telegram aquí — todo vive en envios.js.
+const { enviarRespuestaEmergencia } = require("./envios_mensajes_whatsapp_telegram.js");
 
 if (!admin.apps.length) {
   admin.initializeApp();
 }
-
-const db = admin.firestore();
 
 const openai = new OpenAI({
   apiKey: process.env.API_KEYO_OPEN_IA,
@@ -24,19 +25,10 @@ const GEMINIKEY = process.env.PRIVATEKEY_GEMINI;
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP;
-const WHATSAPP_PHONE_NUMBER_ID = process.env.ID_NUMBER_WHATSAPP;
-const WHATSAPP_API_VERSION = "v20.0";
-
-// ============================================================
-// 👇 NUEVO: config de Telegram (mismo patrón que WhatsApp arriba)
-// ============================================================
-const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
-
 const HITS_PER_PAGE_EMERGENCIA_AMPLIO = 60;
 
 // ============================================================================
+// CLASIFICACIÓN SALUD / SEGURIDAD (sin cambios)
 // ============================================================================
 
 function construirPromptEmergencia(mensaje) {
@@ -159,12 +151,6 @@ async function clasificarMensaje(mensaje, intento = 1) {
     "| intentos usados:",
     intento,
   );
-  console.log(
-    "🟢 [clasificarMensaje] FIN | categoria:",
-    categoria,
-    "| tiempo_ms:",
-    tiempoMs,
-  );
 
   return { categoria, usage: { ...usage, intentos: intento } };
 }
@@ -177,10 +163,6 @@ async function buscarLugaresAmplio(localidad) {
 
   const filters =
     filtersArray.length > 0 ? filtersArray.join(" AND ") : undefined;
-
-  console.log(
-    `🚀 [buscarLugaresAmplio] Buscando "${localidad || ""}" en paralelo con IA clasificadora (hitsPerPage: ${HITS_PER_PAGE_EMERGENCIA_AMPLIO})`,
-  );
 
   const result = await index.search("", {
     filters,
@@ -197,24 +179,11 @@ async function buscarLugaresAmplio(localidad) {
 }
 
 async function buscarLugares(localidad, categoria, preHits) {
-  console.log(
-    "🟡 [buscarLugares] INICIO | localidad:",
-    localidad,
-    "| categoria:",
-    categoria,
-  );
-
   const t0 = Date.now();
 
   let hitsCrudos;
 
   if (Array.isArray(preHits)) {
-    // 👇 Ya tenemos los hits (vinieron de la búsqueda amplia en paralelo).
-    // Solo falta filtrar por categoria en memoria, sin tocar Algolia de nuevo.
-    console.log(
-      `♻️ [buscarLugares] Usando ${preHits.length} hits precargados (paralelo), filtrando por categoria en memoria`,
-    );
-
     const categoriaLimpia =
       categoria && categoria !== "general"
         ? categoria.toLowerCase().trim()
@@ -225,13 +194,7 @@ async function buscarLugares(localidad, categoria, preHits) {
           (h) => (h.categoria || "").toLowerCase().trim() === categoriaLimpia,
         )
       : preHits;
-
-    console.log(
-      `🔎 [buscarLugares] ${hitsCrudos.length} hits tras filtrar por categoria "${categoria || "(ninguna)"}"`,
-    );
   } else {
-    // Camino original: sin búsqueda paralela previa — Algolia filtra
-    // directo por localidad + categoria, tal como antes.
     let filtersArray = [];
     if (localidad) filtersArray.push(`lugar:"${localidad}"`);
     if (categoria && categoria !== "general")
@@ -240,16 +203,9 @@ async function buscarLugares(localidad, categoria, preHits) {
     const filters =
       filtersArray.length > 0 ? filtersArray.join(" AND ") : undefined;
 
-    console.log(
-      "🔎 [buscarLugares] filtros Algolia:",
-      filters || "(sin filtro)",
-    );
-
     const result = await index.search("", { filters, hitsPerPage: 20 });
     hitsCrudos = result.hits;
   }
-
-  console.log("📦 [buscarLugares] TOTAL HITS CRUDOS:", hitsCrudos.length);
 
   const data = hitsCrudos.map((d) => {
     let ubicacion = null;
@@ -276,25 +232,10 @@ async function buscarLugares(localidad, categoria, preHits) {
   });
 
   const tiempoMs = Date.now() - t0;
-  console.log("⏱️ Algolia:", { tiempo_ms: tiempoMs, resultados: data.length });
-
   return { data, usage: { tiempo_ms: tiempoMs } };
 }
 
-async function seleccionarContacto(
-  entidadesLigeras,
-  mensajeUsuario,
-  nombreUsuario,
-) {
-  console.log(
-    "🟡 [seleccionarContacto] INICIO | entidades disponibles:",
-    entidadesLigeras.length,
-  );
-  console.log(
-    "📤 [seleccionarContacto] ENTIDADES ENVIADAS A GEMINI (solo id+n):",
-    JSON.stringify(entidadesLigeras),
-  );
-
+async function seleccionarContacto(entidadesLigeras, mensajeUsuario, nombreUsuario) {
   const t0 = Date.now();
   const systemMessage = construirSystemPromptSelector(
     entidadesLigeras,
@@ -321,13 +262,11 @@ async function seleccionarContacto(
   const tiempoMs = Date.now() - t0;
 
   const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  console.log("🤖 RAW Gemini:", rawText);
 
   let outputIA;
   try {
     outputIA = JSON.parse(rawText.replace(/```json|```/g, "").trim());
   } catch (e) {
-    console.log("❌ [seleccionarContacto] ERROR parseando Gemini:", e.message);
     throw new Error("No se pudo parsear la respuesta de Gemini: " + rawText);
   }
 
@@ -338,43 +277,18 @@ async function seleccionarContacto(
     total_tokens: json.usageMetadata?.totalTokenCount ?? null,
   };
 
-  console.log("⏱️ Gemini:", usage);
-  console.log(
-    "🟢 [seleccionarContacto] FIN | outputIA:",
-    JSON.stringify(outputIA),
-  );
-
   return { outputIA, usage };
 }
 
 function construirRespuestaFinal(outputIA, data) {
-  console.log(
-    "🟡 [construirRespuestaFinal] INICIO | buscando id:",
-    outputIA.id,
-    "entre",
-    data.length,
-    "contactos",
-  );
-
   const contacto = data.find((c) => c.id === outputIA.id);
 
   if (!contacto) {
-    console.log(
-      "❌ [construirRespuestaFinal] NO SE ENCONTRÓ la entidad con id:",
-      outputIA.id,
-    );
     return { error: "No se encontró la entidad", tiene_link: false };
   }
 
-  console.log(
-    "✅ [construirRespuestaFinal] CONTACTO ENCONTRADO:",
-    JSON.stringify(contacto),
-  );
-
   const listaLlamadas = contacto.num?.llamada || [];
-  const listaWhatsapp = contacto.num?.whatsapp?.[0]
-    ? contacto.num.whatsapp
-    : [];
+  const listaWhatsapp = contacto.num?.whatsapp?.[0] ? contacto.num.whatsapp : [];
 
   const bloqueContactos =
     listaLlamadas.length && listaWhatsapp.length
@@ -391,6 +305,7 @@ function construirRespuestaFinal(outputIA, data) {
   const direccion = contacto.dir || "";
   const referencia = contacto.ref || "";
   const mensajeBase = String(outputIA.mensaje).trim();
+
   const base = {
     id: outputIA.id,
     intencion: outputIA.intencion,
@@ -400,7 +315,7 @@ function construirRespuestaFinal(outputIA, data) {
     whatsapp: listaWhatsapp,
   };
 
-  const resultadoFinal = tiene_link
+  return tiene_link
     ? {
         ...base,
         mensaje_texto:
@@ -413,418 +328,17 @@ function construirRespuestaFinal(outputIA, data) {
         mensaje_safe:
           `${mensajeBase} ${bloqueContactos} 🏠 ${direccion} ${referencia ? `💡 ${referencia}` : ""} ✅`.trim(),
       };
-
-  console.log(
-    "🟢 [construirRespuestaFinal] FIN | resultado:",
-    JSON.stringify(resultadoFinal),
-  );
-
-  return resultadoFinal;
 }
 
 // ============================================================
-// ENVÍO — WHATSAPP (sin cambios respecto al original)
+// NÚCLEO — calcula el resultado de la emergencia. NO MANDA NADA.
 // ============================================================
-
-async function enviarPlantillaEmergencia(recipientPhoneNumber, resultado) {
-  const telefonosLine = [
-    resultado.telefonos?.length
-      ? `📞 Llámalos al: ${resultado.telefonos[0]}`
-      : "",
-    resultado.whatsapp?.length
-      ? ` 💬 Escríbeles al: ${resultado.whatsapp[0]}`
-      : "",
-  ]
-    .join(" o ")
-    .trim();
-
-  const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
-
-  const body = {
-    messaging_product: "whatsapp",
-    to: recipientPhoneNumber,
-    type: "template",
-    template: {
-      name: "emergencia_user",
-      language: { code: "es" },
-      components: [
-        {
-          type: "header",
-          parameters: [{ type: "text", text: "MANTEN LA CALMA" }],
-        },
-        {
-          type: "body",
-          parameters: [
-            { type: "text", text: resultado.mensaje_texto },
-            { type: "text", text: telefonosLine },
-          ],
-        },
-        {
-          type: "button",
-          sub_type: "url",
-          index: "0",
-          parameters: [
-            { type: "text", text: `${resultado.lat},${resultado.lng}` },
-          ],
-        },
-      ],
-    },
-  };
-
-  console.log("📤 [enviarPlantillaEmergencia] BODY:", JSON.stringify(body));
-
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!resp.ok) {
-    const errText = await resp.text();
-    console.log("❌ [enviarPlantillaEmergencia] ERROR:", resp.status, errText);
-    throw new Error(
-      `Error enviando plantilla emergencia: ${resp.status} ${errText}`,
-    );
-  }
-
-  console.log("✅ [enviarPlantillaEmergencia] Plantilla enviada OK");
-  guardarMensajeHistorial({
-    canal: "whatsapp",
-    numero_usuario: recipientPhoneNumber,
-    remitente: "bot",
-    tipo: "plantilla",
-    contenido: resultado.mensaje_texto || "",
-    extra: { plantilla: "emergencia_user" },
-  }).catch(() => {});
-
-  return resp.json();
-}
-
-async function enviarMensajeTextoEmergencia(recipientPhoneNumber, resultado) {
-  const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
-
-  const body = {
-    messaging_product: "whatsapp",
-    to: recipientPhoneNumber,
-    type: "text",
-    text: { body: resultado.mensaje_safe },
-  };
-
-  console.log("📤 [enviarMensajeTextoEmergencia] BODY:", JSON.stringify(body));
-
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!resp.ok) {
-    const errText = await resp.text();
-    console.log(
-      "❌ [enviarMensajeTextoEmergencia] ERROR:",
-      resp.status,
-      errText,
-    );
-    throw new Error(
-      `Error enviando mensaje texto emergencia: ${resp.status} ${errText}`,
-    );
-  }
-
-  console.log("✅ [enviarMensajeTextoEmergencia] Mensaje enviado OK");
-  guardarMensajeHistorial({
-    canal: "whatsapp",
-    numero_usuario: recipientPhoneNumber,
-    remitente: "bot",
-    tipo: "texto",
-    contenido: resultado.mensaje_safe || "",
-  }).catch(() => {});
-  return resp.json();
-}
-
-// ============================================================
-// 👇 NUEVO — ENVÍO POR TELEGRAM
-// Telegram no exige plantillas pre-aprobadas ni ventana de 24h, así
-// que aquí es más simple: texto libre con sendMessage, y ubicación
-// nativa con sendLocation (Telegram no permite caption en
-// sendLocation, por eso el texto de apoyo va como mensaje aparte).
-// ============================================================
-
-// ============================================================
-// 👇 MODIFICADO — ahora acepta un teclado inline opcional (botones)
-// ============================================================
-async function enviarMensajeTextoTelegram(chat_id, texto, replyMarkup = null) {
-  const url = `${TELEGRAM_API_URL}/sendMessage`;
-
-  const chatIdReal = String(chat_id).startsWith("tg_")
-    ? String(chat_id).replace(/^tg_/, "")
-    : chat_id;
-
-  const body = {
-    chat_id: chatIdReal,
-    text: texto,
-    parse_mode: "HTML",
-  };
-
-  if (replyMarkup) {
-    body.reply_markup = replyMarkup;
-  }
-
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!resp.ok) {
-    const errText = await resp.text();
-    console.log("❌ [enviarMensajeTextoTelegram] ERROR:", resp.status, errText);
-    throw new Error(
-      `Error enviando mensaje texto Telegram: ${resp.status} ${errText}`,
-    );
-  }
-
-  console.log("✅ [enviarMensajeTextoTelegram] Mensaje enviado OK");
-  guardarMensajeHistorial({
-    canal: "telegram",
-    numero_usuario: String(chat_id),
-    remitente: "bot",
-    tipo: "texto",
-    contenido: texto || "",
-    extra: { canal: "telegram" },
-  }).catch(() => {});
-
-  return resp.json();
-}
-
-async function enviarUbicacionTelegram(chat_id, lat, lng, caption) {
-  const urlLoc = `${TELEGRAM_API_URL}/sendLocation`;
-
-  // Mismo fix: limpiar el prefijo "tg_" antes de llamar a la API de Telegram.
-  const chatIdReal = String(chat_id).startsWith("tg_")
-    ? String(chat_id).replace(/^tg_/, "")
-    : chat_id;
-
-  console.log("📤 [enviarUbicacionTelegram] lat:", lat, "| lng:", lng);
-
-  const respLoc = await fetch(urlLoc, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatIdReal,
-      latitude: lat,
-      longitude: lng,
-    }),
-  });
-
-  if (!respLoc.ok) {
-    const errText = await respLoc.text();
-    console.log("❌ [enviarUbicacionTelegram] ERROR:", respLoc.status, errText);
-    throw new Error(
-      `Error enviando ubicación Telegram: ${respLoc.status} ${errText}`,
-    );
-  }
-
-  console.log("✅ [enviarUbicacionTelegram] Pin de ubicación enviado OK");
-
-  // El texto de apoyo (mensaje_texto) va como mensaje de texto aparte,
-  // ya que sendLocation no acepta caption.
-  if (caption) {
-    await enviarMensajeTextoTelegram(chat_id, caption);
-  }
-
-  guardarMensajeHistorial({
-    numero_usuario: String(chat_id),
-    remitente: "bot",
-    tipo: "ubicacion",
-    contenido: caption || "",
-    extra: { canal: "telegram", lat, lng },
-  }).catch(() => {});
-
-  return { ok: true };
-}
-// ============================================================
-// SWITCH CENTRAL — decide WhatsApp vs Telegram, y dentro de cada
-// canal decide con-ubicación vs sin-ubicación (mismo criterio de
-// siempre: resultado.tiene_link)
-// ============================================================
-
-function construirMensajeEmergenciaTelegram(resultado) {
-  let mensaje = resultado.mensaje_texto || resultado.mensaje_safe || "";
-
-  if (resultado.telefonos?.length) {
-    mensaje += `\n📞 Llama al: ${resultado.telefonos.join(" / ")}`;
-  }
-
-  if (resultado.whatsapp?.length) {
-    mensaje += `\n💬 WhatsApp: ${resultado.whatsapp.join(" / ")}`;
-  }
-
-  return mensaje;
-}
-
-// ============================================================
-// 👇 MODIFICADO — si hay ubicación, arma el botón "Crear ruta"
-// apuntando a Google Maps y lo manda junto al texto
-// ============================================================
-async function enviarRespuestaEmergencia(
-  recipientId,
-  resultado,
-  canal = "whatsapp",
-) {
-  if (canal === "telegram") {
-    console.log("🔀 [enviarRespuestaEmergencia] Telegram + texto con botón");
-    const texto = construirMensajeEmergenciaTelegram(resultado);
-
-    let replyMarkup = null;
-    if (resultado.tiene_link && resultado.lat && resultado.lng) {
-      const mapsUrl = `https://www.google.com/maps?q=${resultado.lat},${resultado.lng}`;
-      replyMarkup = {
-        inline_keyboard: [[{ text: "🗺️ Crear ruta", url: mapsUrl }]],
-      };
-    }
-
-    return enviarMensajeTextoTelegram(recipientId, texto, replyMarkup);
-  }
-
-  // ---- Rama WhatsApp (sin cambios) ----
-  if (resultado.tiene_link) {
-    console.log("🔀 [enviarRespuestaEmergencia] WhatsApp + plantilla");
-    return enviarPlantillaEmergencia(recipientId, resultado);
-  } else {
-    console.log("🔀 [enviarRespuestaEmergencia] WhatsApp + texto plano");
-    return enviarMensajeTextoEmergencia(recipientId, resultado);
-  }
-}
-exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
-  const tInicio = Date.now();
-  try {
-    const { localidad, mensaje, nombreUsuario, numero_usuario, canal } =
-      req.body; // 👈 se agregó "canal" al destructuring
-
-    console.log(
-      "🚀 [obtener_lugares_emergencia] REQUEST BODY:",
-      JSON.stringify(req.body),
-    );
-
-    if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
-      console.log("❌ falta el campo 'mensaje'");
-      return res
-        .status(400)
-        .json({ ok: false, error: "El campo 'mensaje' es requerido" });
-    }
-
-    if (!numero_usuario) {
-      console.log("❌ falta el campo 'numero_usuario'");
-      return res.status(400).json({
-        ok: false,
-        error:
-          "El campo 'numero_usuario' es requerido para enviar la respuesta",
-      });
-    }
-
-    // ============================================================
-    // 1) PARALELIZACIÓN: la IA clasificadora (SALUD/SEGURIDAD) y la
-    // búsqueda amplia en Algolia (solo por localidad) corren AL MISMO
-    // TIEMPO con Promise.all, en vez de esperar a que la IA termine para
-    // recién ahí tocar Algolia. La búsqueda amplia solo depende de
-    // "localidad" (ya se conoce desde el inicio), así que no hay ningún
-    // dato inventado ni adelantado que dependa de la respuesta de la IA.
-    // ============================================================
-    const [
-      { categoria, usage: usageOpenAI },
-      { hits: hitsAmplios, usage: usageAlgoliaAmplio },
-    ] = await Promise.all([
-      clasificarMensaje(mensaje),
-      buscarLugaresAmplio(localidad),
-    ]);
-
-    // 2) Filtrado en memoria por categoria (sin nueva consulta a Algolia)
-    const { data, usage: usageAlgoliaFiltrado } = await buscarLugares(
-      localidad,
-      categoria,
-      hitsAmplios,
-    );
-
-    console.log("📊 DATA FILTRADA POR CATEGORIA:", data.length, "resultados");
-
-    // 3) A Gemini SOLO le llega { id, n } de cada entidad
-    const entidadesLigeras = construirEntidadesLigeras(data);
-    const { outputIA, usage: usageGemini } = await seleccionarContacto(
-      entidadesLigeras,
-      mensaje,
-      nombreUsuario || "usuario",
-    );
-
-    // 4) Armar la respuesta final (con o sin link)
-    const resultado = construirRespuestaFinal(outputIA, data);
-
-    // 5) Enviar por el canal correspondiente (WhatsApp o Telegram)
-    if (!resultado.error) {
-      await enviarRespuestaEmergencia(
-        numero_usuario,
-        resultado,
-        canal || "whatsapp", // 👈 default a whatsapp si no viene el campo
-      );
-    } else {
-      console.log(
-        "⚠️ No se envía el mensaje porque hubo error armando el resultado:",
-        resultado.error,
-      );
-    }
-
-    const tiempoTotalMs = Date.now() - tInicio;
-
-    const debugInfo = {
-      tiempo_total_ms: tiempoTotalMs,
-      categoria_detectada: categoria,
-      canal: canal || "whatsapp",
-      openai: usageOpenAI,
-      algolia: usageAlgoliaAmplio,
-      algolia_filtrado_local: usageAlgoliaFiltrado,
-      gemini: usageGemini,
-    };
-
-    console.log("📊 RESUMEN TIEMPOS/TOKENS:", JSON.stringify(debugInfo));
-
-    res.set("Cache-Control", "public, max-age=300");
-    return res.status(200).json({ ...resultado, _debug: debugInfo });
-  } catch (error) {
-    console.error("❌ ERROR obtener_lugares_emergencia:", error.message);
-    return res
-      .status(500)
-      .json({ ok: false, mensaje: "Error interno al buscar lugares" });
-  }
-});
-
-async function procesarEmergencia({
-  localidad,
-  mensaje,
-  nombreUsuario,
-  numero_usuario,
-  canal = "whatsapp", // 👈 NUEVO — "whatsapp" | "telegram", con default a whatsapp
-  // para no romper las llamadas existentes desde geinz_webhook_principal.js
-}) {
+async function resolverEmergencia({ localidad, mensaje, nombreUsuario }) {
   const tInicio = Date.now();
 
-  console.log(
-    "🚀 [procesarEmergencia] INICIO | mensaje:",
-    mensaje,
-    "| numero_usuario:",
-    numero_usuario,
-    "| canal:",
-    canal,
-  );
-
-  // ============================================================
-  // 1) PARALELIZACIÓN: mismo cambio que en el endpoint HTTP — la IA
-  // clasificadora y la búsqueda amplia por localidad corren juntas.
-  // ============================================================
+  // Clasificador IA + búsqueda amplia en Algolia corren en paralelo
+  // (la búsqueda amplia solo depende de "localidad", no de la
+  // clasificación, así que no hay nada adelantado/inventado).
   const [
     { categoria, usage: usageOpenAI },
     { hits: hitsAmplios, usage: usageAlgoliaAmplio },
@@ -839,12 +353,6 @@ async function procesarEmergencia({
     hitsAmplios,
   );
 
-  console.log(
-    "📊 [procesarEmergencia] DATA FILTRADA POR CATEGORIA:",
-    data.length,
-    "resultados",
-  );
-
   const entidadesLigeras = construirEntidadesLigeras(data);
   const { outputIA, usage: usageGemini } = await seleccionarContacto(
     entidadesLigeras,
@@ -854,29 +362,107 @@ async function procesarEmergencia({
 
   const resultado = construirRespuestaFinal(outputIA, data);
 
-  if (!resultado.error) {
-    await enviarRespuestaEmergencia(numero_usuario, resultado, canal);
-  } else {
-    console.log(
-      "⚠️ [procesarEmergencia] No se envía el mensaje, hubo error:",
-      resultado.error,
-    );
-  }
-
-  const tiempoTotalMs = Date.now() - tInicio;
-
   const debugInfo = {
-    tiempo_total_ms: tiempoTotalMs,
+    tiempo_total_ms: Date.now() - tInicio,
     categoria_detectada: categoria,
-    canal,
     openai: usageOpenAI,
     algolia: usageAlgoliaAmplio,
     algolia_filtrado_local: usageAlgoliaFiltrado,
     gemini: usageGemini,
   };
 
+  return { resultado, debugInfo };
+}
+
+// ============================================================
+// procesarEmergencia — usada por el dispensador general
+// (geinz_dispatcher.js). YA NO ENVÍA NADA: solo calcula y devuelve
+// el resultado + info de debug. El dispensador es quien decide,
+// según el canal (whatsapp/telegram) de la conversación, llamar a
+// enviarRespuestaEmergencia (importada de envios.js) para mandar el
+// mensaje o la plantilla de verdad.
+// ============================================================
+async function procesarEmergencia({ localidad, mensaje, nombreUsuario }) {
+  console.log(
+    "🚀 [procesarEmergencia] INICIO (solo cálculo, sin envío) | mensaje:",
+    mensaje,
+  );
+
+  const { resultado, debugInfo } = await resolverEmergencia({
+    localidad,
+    mensaje,
+    nombreUsuario,
+  });
+
+  if (resultado.error) {
+    console.log(
+      "⚠️ [procesarEmergencia] No se pudo armar un resultado enviable:",
+      resultado.error,
+    );
+  }
+
   console.log("📊 [procesarEmergencia] RESUMEN:", JSON.stringify(debugInfo));
 
   return { ...resultado, _debug: debugInfo };
 }
+
+// ============================================================
+// Endpoint HTTP directo (uso manual / integraciones externas que no
+// pasan por geinz_webhook_principal, geinz_procesar_buffer o
+// geinz_webhook_telegram). Al ser su propia puerta de entrada HTTP,
+// aquí sí se dispara el envío — pero SIEMPRE a través de la misma
+// función compartida enviarRespuestaEmergencia de envios.js. No hay
+// ningún fetch directo a Meta/Telegram en este archivo.
+// ============================================================
+exports.obtener_lugares_emergencia_Actualizado = onRequest(async (req, res) => {
+  const tInicio = Date.now();
+  try {
+    const { localidad, mensaje, nombreUsuario, numero_usuario, canal } = req.body;
+
+    if (!mensaje || typeof mensaje !== "string" || !mensaje.trim()) {
+      return res
+        .status(400)
+        .json({ ok: false, error: "El campo 'mensaje' es requerido" });
+    }
+
+    if (!numero_usuario) {
+      return res.status(400).json({
+        ok: false,
+        error:
+          "El campo 'numero_usuario' es requerido para enviar la respuesta",
+      });
+    }
+
+    const { resultado, debugInfo } = await resolverEmergencia({
+      localidad,
+      mensaje,
+      nombreUsuario,
+    });
+
+    if (!resultado.error) {
+      await enviarRespuestaEmergencia(
+        numero_usuario,
+        resultado,
+        canal || "whatsapp",
+      );
+    } else {
+      console.log(
+        "⚠️ No se envía el mensaje porque hubo error armando el resultado:",
+        resultado.error,
+      );
+    }
+
+    res.set("Cache-Control", "public, max-age=300");
+    return res.status(200).json({
+      ...resultado,
+      _debug: { ...debugInfo, canal: canal || "whatsapp", tiempo_total_ms: Date.now() - tInicio },
+    });
+  } catch (error) {
+    console.error("❌ ERROR obtener_lugares_emergencia:", error.message);
+    return res
+      .status(500)
+      .json({ ok: false, mensaje: "Error interno al buscar lugares" });
+  }
+});
+
 exports.procesarEmergencia = procesarEmergencia;

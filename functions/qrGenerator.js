@@ -51,10 +51,11 @@ async function getBrowser() {
  * @param {string} [config.captionText]  - Texto bajo el QR (si no lo mandas, usa el link)
  * @param {string} [config.logo]         - Logo como data URL base64: "data:image/png;base64,...."
  * @param {boolean} [config.autoColor]   - Si mandas logo y NO mandas "colors", por defecto (true)
- *                                          se detecta el color dominante del logo (ignorando su
- *                                          whitespace/transparencia) y se usa para generar el
- *                                          degradado del QR y el aro alrededor del logo.
- *                                          Pasa false para mantener siempre la paleta por defecto.
+ *                                          se detectan hasta 3 colores PREDOMINANTES reales del
+ *                                          logo (ignorando su whitespace/transparencia) y se usan
+ *                                          directo como stops del degradado del QR y del marco
+ *                                          alrededor del logo. Pasa false para mantener siempre
+ *                                          la paleta por defecto.
  * @param {boolean} [config.onlyQr]      - true = solo el QR sin tarjeta; false = tarjeta completa
  * @returns {Promise<Buffer>} PNG buffer
  */

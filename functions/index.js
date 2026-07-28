@@ -147,10 +147,10 @@ exports.webhookCulqiOrder_scagAI = webhookCulqiOrder_scagAI;
 exports.confirmarPagoPlan = confirmarPagoPlan;
 
 
-const {
-  geinz_webhook_telegram
-} = require("./geinz_bot/telegram_bot")
-exports.geinz_webhook_telegram = geinz_webhook_telegram
+//const {
+  //geinz_webhook_telegram
+//} = require("./geinz_bot/telegram_bot")
+//exports.geinz_webhook_telegram = geinz_webhook_telegram
 
 
 
@@ -164,11 +164,12 @@ exports.dispensador_webhook_telegram = dispensador_webhook_telegram
 
 const {
   geinz_webhook_principal,
-  geinz_procesar_buffer, geinz_aviso_qr_escaneado
-} = require("./geinz_bot/dispensador_competo_geinz_pruevas.js");
+  geinz_procesar_buffer, geinz_aviso_qr_escaneado,geinz_webhook_telegram
+} = require("./geinz_bot/dispensador_general_geinz_bot.js");
 exports.geinz_webhook_principal = geinz_webhook_principal;
 exports.geinz_procesar_buffer = geinz_procesar_buffer;
 exports.geinz_aviso_qr_escaneado = geinz_aviso_qr_escaneado
+exports.geinz_webhook_telegram=geinz_webhook_telegram
 
 
 const {
@@ -209,7 +210,7 @@ exports.syncProductoAlgolia = syncProductoAlgolia;
 exports.syncCategoriaAlgolia = syncCategoriaAlgolia;
 
 
-const { qrApi } = require("./qrScanGeinz/qrGenerator.js");
+const { qrApi } = require("./qrGenerator.js");
 exports.qrApi = qrApi;
 
 
