@@ -3886,48 +3886,35 @@ exports.share = onRequest(async (req, res) => {
 });
 
 // ─────────────────────────────────────────────
-// PERFIL SSR — SEO + Social Preview + Usuarios
+// PERFIL SSR — Social Preview + Redirect SEO/Usuarios
 // ─────────────────────────────────────────────
 exports.perfilSSR = onRequest(async (req, res) => {
   const alias = req.path.replace(/^\/perfil\//, "").trim();
   if (!alias) return res.status(404).send("No encontrado");
 
   const userAgent = req.headers["user-agent"] || "";
-
-  // ✅ Log para ver qué bot llega
   logger.info("UA →", userAgent);
 
-  const esCrawlerSEO = /googlebot|bingbot/i.test(userAgent);
+  // Solo bots de PREVIEW SOCIAL ven el HTML con etiquetas OG.
+  // Quité "curl", "python", "wget", "w3c_validator" — son herramientas
+  // de testing, no bots de preview real. Agrégalas de nuevo temporalmente
+  // si necesitas probar manualmente con curl.
   const esPreviewSocial =
-    /whatsapp|telegram|twitterbot|facebookexternalhit|facebookbot|linkedinbot|slackbot|discordbot|skype|viber|line|snapchat|pinterest|vkshare|w3c_validator|curl|python|wget/i.test(
+    /whatsapp|telegram|twitterbot|facebookexternalhit|facebookbot|linkedinbot|slackbot|discordbot|skype|viber|line|snapchat|pinterest|vkshare/i.test(
       userAgent,
     );
 
-  // Usuario normal → sirve perfil.html
-  if (!esCrawlerSEO && !esPreviewSocial) {
-    try {
-      const response = await fetch("https://geinztech.com/perfil.html");
-      let html = await response.text();
-      html = html
-        .replace(/src="\.\/js\//g, 'src="https://geinztech.com/js/')
-        .replace(
-          /href="\.\/style\//g,
-          'href="https://geinztech.com/style/',
-        )
-        .replace(/href="\.\/img\//g, 'href="https://geinztech.com/img/')
-        .replace(/src="\.\/img\//g, 'src="https://geinztech.com/img/')
-        .replace(/"\.\//g, '"https://geinztech.com/');
-      res.set("Content-Type", "text/html");
-      return res.status(200).send(html);
-    } catch (e) {
-      logger.error("Error sirviendo perfil.html:", e);
-      return res.redirect(
-        302,
-        `https://geinztech.com/perfil/${encodeURIComponent(alias)}`,
-      );
-    }
+  // TODO lo demás (usuarios normales, Googlebot, Bingbot, herramientas de
+  // validación) recibe un 301 directo al nuevo dominio. Esto es lo que
+  // hacía falta para que Search Console pueda validar la redirección.
+  if (!esPreviewSocial) {
+    return res.redirect(
+      301,
+      `https://geinztech.com/perfil/${encodeURIComponent(alias)}`,
+    );
   }
 
+  // A partir de aquí, solo entran bots de preview social (WhatsApp, FB, etc.)
   try {
     const db = admin.firestore();
 
@@ -3979,8 +3966,6 @@ exports.perfilSSR = onRequest(async (req, res) => {
     }
     const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
 
-    // ✅ Mismo HTML para AMBOS — crawlerSEO y previewSocial
-    // WhatsApp necesita og:image con URL absoluta HTTPS y sin redirección
     const ogHtml = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -4042,7 +4027,7 @@ exports.perfilSSR = onRequest(async (req, res) => {
   ${facebook ? `<p>Facebook: ${facebook}</p>` : ""}
   ${instagram ? `<p>Instagram: ${instagram}</p>` : ""}
   ${tiktok ? `<p>TikTok: ${tiktok}</p>` : ""}
-  ${esPreviewSocial ? `<script>window.location.href = "${url}";</script>` : ""}
+  <script>window.location.href = "${url}";</script>
 </body>
 </html>`;
 
@@ -4053,42 +4038,31 @@ exports.perfilSSR = onRequest(async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────
+// TURISMO SSR — Social Preview + Redirect SEO/Usuarios
+// ─────────────────────────────────────────────
 exports.turismoSSR = onRequest(async (req, res) => {
   const alias = req.path.replace(/^\/turismo\//, "").trim();
   if (!alias) return res.status(404).send("No encontrado");
 
   const userAgent = req.headers["user-agent"] || "";
 
-  const esCrawlerSEO = /googlebot|bingbot/i.test(userAgent);
   const esPreviewSocial =
-    /whatsapp|telegram|twitterbot|facebookexternalhit|facebookbot|linkedinbot|slackbot|discordbot|skype|viber|line|snapchat|pinterest|vkshare|w3c_validator|curl|python|wget/i.test(
+    /whatsapp|telegram|twitterbot|facebookexternalhit|facebookbot|linkedinbot|slackbot|discordbot|skype|viber|line|snapchat|pinterest|vkshare/i.test(
       userAgent,
     );
 
-  // ============================
-  //   USUARIO NORMAL → SPA
-  // ============================
-  if (!esCrawlerSEO && !esPreviewSocial) {
-    try {
-      const html = await getTurismoHtml();
-      res.set("Content-Type", "text/html");
-      // Cache en CDN de Hosting: 5 min, revalida en background
-      res.set(
-        "Cache-Control",
-        "public, max-age=300, s-maxage=300, stale-while-revalidate=600",
-      );
-      return res.status(200).send(html);
-    } catch (e) {
-      logger.error("Error sirviendo turismo.html:", e);
-      return res.redirect(
-        302,
-        `https://geinztech.com/turismo/${encodeURIComponent(alias)}`,
-      );
-    }
+  // TODO lo demás (usuarios normales, Googlebot, Bingbot, herramientas)
+  // recibe 301 directo al nuevo dominio.
+  if (!esPreviewSocial) {
+    return res.redirect(
+      301,
+      `https://geinztech.com/turismo/${encodeURIComponent(alias)}`,
+    );
   }
 
   // ============================
-  //   BOTS → OG META TAGS
+  //   BOTS DE PREVIEW → OG META TAGS
   // ============================
   try {
     const db = admin.firestore();
@@ -4169,7 +4143,7 @@ exports.turismoSSR = onRequest(async (req, res) => {
 <body>
   <h1>${titulo}</h1>
   <p>${descripcion}</p>
-  ${esPreviewSocial ? `<script>window.location.href = "${url}";</script>` : ""}
+  <script>window.location.href = "${url}";</script>
 </body>
 </html>`;
 
