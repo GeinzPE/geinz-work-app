@@ -1531,6 +1531,7 @@ exports.pagar_plan__usuario = onCall(async (request) => {
 
   try {
     const {
+    pais,provincia,
       precio_por_moneda,
       id_tienda,
       localidad,
