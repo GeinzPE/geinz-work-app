@@ -28,7 +28,7 @@ function getTtsClient() {
   return _ttsClient;
 }
 const geofire = require("geofire-common");
-
+const paths = require("./rutas_geinz_firebase/rutas.js");//falta ioirtacones para los camibos 
 admin.initializeApp();
 
 const axios = require("axios");
