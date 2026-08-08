@@ -107,7 +107,7 @@ exports.crearOrdenCulqi = onCall(async (req) => {
 
   if (orderId) {
     await paths
-      .tiendaCol("barranca", "pagos_tiendas", orderId)
+      .tiendaDoc("barranca", "pagos_tiendas", orderId)
       .set(
         { order_number_culqi: orderNumber, culqi_order_id },
         { merge: true },
@@ -375,9 +375,10 @@ exports.confirmarPago = onCall(async (req) => {
 
         // Notificación "Deuda cancelada" — única, enviada aquí
         try {
-          const tiendaDoc = await paths
-            .tiendaCol(localidad, "tiendas", userId)
-            .get();
+        const tiendaSnap = await paths
+  .negocioDoc(localidad, userId)   // 👈 usa el helper que ya existe para esto
+  .get();
+
 
           const propietarios = tiendaDoc.data()?.propietario_id || [];
 
