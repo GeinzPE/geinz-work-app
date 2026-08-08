@@ -192,7 +192,7 @@ Reglas estrictas:
 
     // ── 3. Guardar historial financiero ─────────────────────────────
     await paths
-      .tiendaCol(localidad, "tiendas", id_tienda, "historial_financiero")
+      .tiendaDoc(localidad, "tiendas", id_tienda, "historial_financiero",id_transaccion)
 
       .set({
         datos_recarga: {
@@ -402,7 +402,7 @@ exports.generar_texto_ia = onCall(async (request) => {
 
     // ── 3. Guardar historial financiero ─────────────────────────────
     await paths
-      .tiendaCol(
+      .tiendaDoc(
         localidad,
         "tiendas",
         id_tienda,
@@ -559,7 +559,7 @@ Descripción: ${descTexto}`.trim();
 
     // ── 3. Guardar historial financiero ─────────────────────────────
     await paths
-      .tiendaCol(
+      .tiendaDoc(
         localidad,
         "tiendas",
         id_tienda,
@@ -706,7 +706,7 @@ Descripción: ${descTexto}`.trim();
 
     // ── 3. Guardar historial financiero ─────────────────────────────
     await paths
-      .tiendaCol(
+      .tiendaDoc(
         localidad,
         "tiendas",
         id_tienda,
@@ -961,7 +961,7 @@ ${texto.trim()}
 
     // ── 3. Guardar historial financiero ─────────────────────────────
     await paths
-      .tiendaCol(
+      .tiendaDoc(
         localidad,
         "tiendas",
         id_tienda,
@@ -1366,7 +1366,7 @@ exports.crearPromocion = onCall(async (request) => {
 
     // ── PASO 5: Referencias Firestore ─────────────────────
    const ref1 = paths.tiendaDoc(
-  localidadLower, "tiendas", id_tienda, "promos_ofertas", id_promocion,
+  localidadLower, "promos_ofertas", id_promocion,
 );
 const ref2 = paths.tiendaDoc(
   localidadLower, "tiendas", id_tienda, "promociones_geinz", id_promocion,

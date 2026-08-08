@@ -420,11 +420,9 @@ exports.extraer_datos_de_texto_completo = onRequest(
       const { texto, categoria_tienda, nombre_negocio } = req.body;
 
       if (!texto || !categoria_tienda) {
-        res
-          .status(400)
-          .json({
-            error: "Faltan parámetros: texto y categoria_tienda son requeridos",
-          });
+        res.status(400).json({
+          error: "Faltan parámetros: texto y categoria_tienda son requeridos",
+        });
         return;
       }
 
@@ -3218,7 +3216,7 @@ exports.webhookCulqi = onRequest(
             return res.status(200).send("ok");
           }
 
-          await paths.tiendaDoc(data.localidad,"tiendas",data.userId).set(
+          await paths.tiendaDoc(data.localidad, "tiendas", data.userId).set(
             {
               puntos_tienda: admin.firestore.FieldValue.increment(data.monedas),
             },
@@ -3822,8 +3820,6 @@ exports.share = onRequest(async (req, res) => {
   }
 });
 
-
-
 const PAGINAS_ESTATICAS = {
   "logindata/login": {
     titulo: "Iniciar sesión | GeinzWork",
@@ -3870,7 +3866,9 @@ exports.staticSSR = onRequest(async (req, res) => {
 
   if (!esCrawlerSEO && !esPreviewSocial) {
     try {
-      const response = await fetch(`https://geinztech.com/${pagina.archivoHtml}`);
+      const response = await fetch(
+        `https://geinztech.com/${pagina.archivoHtml}`,
+      );
       const html = await response.text();
       res.set("Content-Type", "text/html");
       return res.status(200).send(html);
@@ -3996,7 +3994,9 @@ exports.perfilSSR = onRequest(async (req, res) => {
       if (promoImg) {
         logo = promoImg;
       } else {
-        logger.warn(`Promo "${promoId}" no encontrada en lista_img.promociones`);
+        logger.warn(
+          `Promo "${promoId}" no encontrada en lista_img.promociones`,
+        );
       }
     }
     const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
@@ -4336,7 +4336,7 @@ async function recalcularCategoria(db, ciudad, categoria) {
 
   const tagsArray = Array.from(tags);
 
-const ref = paths.tiendaDoc(ciudad, "cache_filtrado", "filtrado");
+  const ref = paths.tiendaDoc(ciudad, "cache_filtrado", "filtrado");
 
   if (tagsArray.length === 0) {
     // 🔥 BORRAR categoría si ya no existe
@@ -4360,7 +4360,8 @@ const ref = paths.tiendaDoc(ciudad, "cache_filtrado", "filtrado");
 
 exports.onPromocionChange = onDocumentWritten(
   {
-    document: "Tiendas/{localidad}/promos_ofertas/{promoId}",
+    document:
+      "Tiendas/{pais}/departamento/{departamento}/provincia/{provincia}/distrito/{localidad}/tiendas/{idTienda}/promos_ofertas/{promoId}",
     region: "us-central1",
   },
   async (event) => {
@@ -4374,14 +4375,14 @@ exports.onPromocionChange = onDocumentWritten(
     }
 
     const categoria = after?.informacion?.categoria;
-    const localidad = event.params.localidad;
+    const localidad = event.params.localidad; // sigue disponible como wildcard
+    const idTienda = event.params.idTienda; // 👈 ahora también lo tienes si lo necesitas
 
     if (!categoria) {
       console.log("⏳ Aún no está lista la promo");
       return;
     }
 
-    // 🔥 SOLO recalcular si ya tiene términos clave
     if (!after.terminos_clave || after.terminos_clave.length === 0) {
       console.log("⏳ Aún no hay términos clave");
       return;
@@ -4532,7 +4533,6 @@ exports.verificarMinimoSeguidores = onDocumentCreated(
     const db = admin.firestore();
 
     const tiendaRef = paths.tiendaDoc(localidad, "tiendas", idTienda); // 👈 antes: tiendaCol(...) sin paths y sin "tiendas"
-
 
     try {
       await db.runTransaction(async (tx) => {
@@ -5004,7 +5004,7 @@ exports.tiendasGeo = onRequest(async (req, res) => {
     const configuracion = {
       turismo: paths.tiendaCol("barranca", "lugares_turisticos"),
       seguridad: paths.tiendaCol("barranca", "salud_seguridad"),
-      cercanos: paths.tiendaCol("barranca","tiendas"),
+      cercanos: paths.tiendaCol("barranca", "tiendas"),
     };
 
     const respuestaFinal = {};

@@ -626,7 +626,7 @@ async function agregar_historial_de_pagos_tienda({
     // ── NOTIFICACIONES (solo si está habilitado) ──
     if (enviarNotificacion) {
       const tiendaDoc = await paths
-        .tiendaCol(localidad_tienda, "tiendas", id_tienda)
+        .tiendaDoc(localidad_tienda, "tiendas", id_tienda)
         .get();
 
       const propietarios = tiendaDoc.data()?.propietario_id || [];
