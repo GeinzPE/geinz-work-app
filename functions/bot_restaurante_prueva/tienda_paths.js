@@ -22,16 +22,25 @@
 //           (onSnapshot funciona como un WebSocket para el front).
 // ============================================================
 
-const RUTA_TIENDA = ["Tiendas", "barranca", "barranca", "TQmS5RKaSDdKmqPGMUXk"];
+const paths = require("../rutas_geinz_firebase/rutas.js");
 
-// String plano — se guarda en cada doc de usuario para poder filtrar con
-// collectionGroup queries en el cron de carritos abandonados (ver
-// lead_scoring_cron.js), ya que "usuarios" se repite bajo cada canal.
-const RUTA_TIENDA_STR = RUTA_TIENDA.join("/");
+// ------------------------------------------------------------
+// Configuración de la tienda (hardcodeada por ahora)
+// ------------------------------------------------------------
+const LOCALIDAD_TIENDA = "barranca";
+const ID_TIENDA = "TQmS5RKaSDdKmqPGMUXk";
 
+const RUTA_TIENDA_STR = paths.tiendaPathStr(
+  LOCALIDAD_TIENDA,
+  "tiendas",
+  ID_TIENDA,
+);
+
+// ------------------------------------------------------------
+// Documento raíz de la tienda
+// ------------------------------------------------------------
 function tiendaDocRef(db) {
-  const [c1, d1, c2, d2] = RUTA_TIENDA;
-  return db.collection(c1).doc(d1).collection(c2).doc(d2);
+  return paths.negocioDoc(LOCALIDAD_TIENDA, ID_TIENDA);
 }
 
 // ---- Carrito ----
@@ -73,11 +82,20 @@ function monitorLeadsRef(db) {
   return tiendaDocRef(db).collection("monitor_leads");
 }
 
+// ------------------------------------------------------------
+// EXPORTS – todos los helpers públicos
+// ------------------------------------------------------------
 module.exports = {
-  RUTA_TIENDA,
+  // Constantes
+  LOCALIDAD_TIENDA,
+  ID_TIENDA,
   RUTA_TIENDA_STR,
   CANALES_VALIDOS,
+
+  // Utilidades
   normalizarCanal,
+
+  // Referencias a documentos/colecciones
   tiendaDocRef,
   carritoCollectionRef,
   carritoDocRef,

@@ -15,6 +15,7 @@ const db = admin.firestore();
 const CULQI_KEY = process.env.CULQI_KEY;
 const PHONE_ID = process.env.ID_NUMBER_WHATSAPP;
 const WHATSAPP_TOKEN = process.env.ID_API_WHATSAPP;
+const paths = require("./rutas_geinz_firebase/rutas");
 
 // NOTA: este archivo es un fragmento — asume que arriba en tu index.js ya
 // tienes los requires/inicializaciones de: admin, db, axios, onCall, onRequest,
@@ -105,11 +106,8 @@ exports.crearOrdenCulqi = onCall(async (req) => {
   const culqi_order_id = response.data.id;
 
   if (orderId) {
-    await db
-      .collection("Tiendas")
-      .doc("barranca")
-      .collection("pagos_tiendas")
-      .doc(orderId)
+    await paths
+      .tiendaCol("barranca", "pagos_tiendas", orderId)
       .set(
         { order_number_culqi: orderNumber, culqi_order_id },
         { merge: true },
@@ -169,10 +167,8 @@ exports.culqiWebhook = onRequest({ cors: true }, async (req, res) => {
       return res.sendStatus(200);
     }
 
-    const pagosRef = db
-      .collection("Tiendas")
-      .doc("barranca")
-      .collection("pagos_tiendas");
+    const pagosRef = db;
+    paths.tiendaCol("barranca", "pagos_tiendas");
 
     // 🔑 Igual que SCAG: buscar por culqi_order_id, no por order_number
     const query = await pagosRef
@@ -379,11 +375,8 @@ exports.confirmarPago = onCall(async (req) => {
 
         // Notificación "Deuda cancelada" — única, enviada aquí
         try {
-          const tiendaDoc = await db
-            .collection("Tiendas")
-            .doc(localidad)
-            .collection(localidad)
-            .doc(userId)
+          const tiendaDoc = await paths
+            .tiendaCol(localidad, "tiendas", userId)
             .get();
 
           const propietarios = tiendaDoc.data()?.propietario_id || [];
@@ -506,11 +499,7 @@ async function sumarSaldo(userId, monedas) {
   console.log("userId:", userId);
   console.log("monedas:", monedas);
 
-  const ref = db
-    .collection("Tiendas")
-    .doc("barranca")
-    .collection("barranca")
-    .doc(userId);
+  const ref = paths.tiendaDoc("barranca", "tiendas", userId);
 
   console.log("📄 Referencia doc creada");
 
@@ -541,12 +530,7 @@ async function sumarSaldo(userId, monedas) {
 }
 
 async function obtenerNumeroWhatsApp(userId) {
-  const snap = await db
-    .collection("Tiendas")
-    .doc("barranca")
-    .collection("barranca")
-    .doc(userId)
-    .get();
+  const snap = await paths.tiendaDoc("barranca", "tiendas", userId).get();
 
   if (!snap.exists) {
     return null;
@@ -573,13 +557,13 @@ async function agregar_historial_de_pagos_tienda({
 
   try {
     // HISTORIAL PRIMERO (más importante)
-    const historialRef = db
-      .collection("Tiendas")
-      .doc(localidad_tienda)
-      .collection(localidad_tienda)
-      .doc(id_tienda)
-      .collection("historial_financiero")
-      .doc(id_transaccion);
+    const historialRef = paths.tiendaDoc(
+      localidad_tienda,
+      "tiendas",
+      id_tienda,
+      "historial_financiero",
+      id_transaccion,
+    );
 
     const data = {
       id_transaccion: id_transaccion,
@@ -616,11 +600,11 @@ async function agregar_historial_de_pagos_tienda({
     console.log("✅ HISTORIAL GUARDADO");
 
     // LUEGO ACTUALIZAS PAGO
-    const pagoRef = db
-      .collection("Tiendas")
-      .doc(localidad_tienda)
-      .collection("pagos_tiendas")
-      .doc(id_transaccion);
+    const pagoRef = paths.tiendaDoc(
+      localidad_tienda,
+      "pagos_tiendas",
+      id_transaccion,
+    );
 
     await pagoRef.set(
       {
@@ -632,22 +616,16 @@ async function agregar_historial_de_pagos_tienda({
 
     console.log("💰 PAGO MARCADO COMO PAGADO");
 
-    await db
-      .collection("Tiendas")
-      .doc(localidad_tienda)
-      .collection(localidad_tienda)
-      .doc(id_tienda)
-      .update({
-        pago_actual_id: admin.firestore.FieldValue.delete(),
-      });
+    await db;
+
+    paths.tiendaDoc(localidad_tienda, "tiendas", id_tienda).update({
+      pago_actual_id: admin.firestore.FieldValue.delete(),
+    });
 
     // ── NOTIFICACIONES (solo si está habilitado) ──
     if (enviarNotificacion) {
-      const tiendaDoc = await db
-        .collection("Tiendas")
-        .doc(localidad_tienda)
-        .collection(localidad_tienda)
-        .doc(id_tienda)
+      const tiendaDoc = await paths
+        .tiendaCol(localidad_tienda, "tiendas", id_tienda)
         .get();
 
       const propietarios = tiendaDoc.data()?.propietario_id || [];
@@ -858,13 +836,14 @@ async function guardarURLComprobanteFirestore({
   urlPDF,
 }) {
   // En el historial financiero (merge para no pisar datos)
-  await db
-    .collection("Tiendas")
-    .doc(localidad)
-    .collection(localidad)
-    .doc(idTienda)
-    .collection("historial_financiero")
-    .doc(idTransaccion)
+  await paths
+    .tiendaCol(
+      localidad,
+      "tiendas",
+      idTienda,
+      "historial_financiero",
+      idTransaccion,
+    )
     .set(
       {
         comprobante: {
@@ -876,11 +855,8 @@ async function guardarURLComprobanteFirestore({
     );
 
   // También en pagos_tiendas para acceso rápido
-  await db
-    .collection("Tiendas")
-    .doc(localidad)
-    .collection("pagos_tiendas")
-    .doc(idTransaccion)
+  await paths
+    .tiendaCol(localidad, "tiendas", idTienda, "pagos_tiendas", idTransaccion)
     .set({ url_comprobante: urlPDF }, { merge: true });
 
   console.log("✅ URL guardada en Firestore");

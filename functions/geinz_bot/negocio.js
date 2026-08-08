@@ -4,7 +4,7 @@ const OpenAI = require("openai");
 const algoliasearch = require("algoliasearch");
 const { FieldValue } = require("firebase-admin/firestore");
 const similarity = require("string-similarity-js");
-
+const paths = require("../rutas_geinz_firebase/rutas");
 const { obtener_creditos_tienda_fn } = require("../test_db2");
 
 const openai = new OpenAI({
@@ -141,7 +141,7 @@ function generarToken() {
 }
 
 async function obtenerDatosPorIds(localidad, ids) {
-  const ref = db.collection("Tiendas").doc(localidad).collection(localidad);
+  const ref =paths.tiendaCol(localidad,"tiendas");
   const resultados = {};
 
   const size = 10;

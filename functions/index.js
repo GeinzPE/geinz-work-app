@@ -28,9 +28,8 @@ function getTtsClient() {
   return _ttsClient;
 }
 const geofire = require("geofire-common");
-const paths = require("./rutas_geinz_firebase/rutas.js");//falta ioirtacones para los camibos 
+const paths = require("./rutas_geinz_firebase/rutas.js");
 admin.initializeApp();
-
 const axios = require("axios");
 const CULQI_KEY = process.env.CULQI_KEY;
 const PHONE_ID = process.env.ID_NUMBER_WHATSAPP;
@@ -80,6 +79,7 @@ exports.guardarContextoBotn8n = guardarContextoBotn8n;
 exports.obtenerCategorias_datas = obtenerCategorias_datas;
 exports.guardar_contacto_user = guardar_contacto_user;
 exports.obtener_contacto_user = obtener_contacto_user;
+
 const {
   obtener_creditos_tienda,
   obtener_creditos_tienda_fn,
@@ -133,7 +133,6 @@ exports.obtener_prompt_vision = obtener_prompt_vision;
 exports.setContextoTemporal = setContextoTemporal;
 exports.getContextoTemporal = getContextoTemporal;
 
-
 const { textoAVozn8n_elevenlabs_2 } = require("./voice_elevenlabs.js");
 exports.textoAVozn8n_elevenlabs_2 = textoAVozn8n_elevenlabs_2;
 
@@ -146,40 +145,39 @@ exports.crearOrdenCulqiPlan = crearOrdenCulqiPlan;
 exports.webhookCulqiOrder_scagAI = webhookCulqiOrder_scagAI;
 exports.confirmarPagoPlan = confirmarPagoPlan;
 
-
 //const {
-  //geinz_webhook_telegram
+//geinz_webhook_telegram
 //} = require("./geinz_bot/telegram_bot")
 //exports.geinz_webhook_telegram = geinz_webhook_telegram
-
-
 
 const { procesar_audio_whatsapp } = require("./wisper.js");
 exports.procesar_audio_whatsapp = procesar_audio_whatsapp;
 
 const {
-  dispensador_webhook_telegram
-} = require("./bot_restaurante_prueva/webhook_telegram_general")
-exports.dispensador_webhook_telegram = dispensador_webhook_telegram
+  dispensador_webhook_telegram,
+} = require("./bot_restaurante_prueva/webhook_telegram_general");
+exports.dispensador_webhook_telegram = dispensador_webhook_telegram;
 
 const {
   geinz_webhook_principal,
-  geinz_procesar_buffer, geinz_aviso_qr_escaneado,geinz_webhook_telegram
+  geinz_procesar_buffer,
+  geinz_aviso_qr_escaneado,
+  geinz_webhook_telegram,
 } = require("./geinz_bot/dispensador_general_geinz_bot.js");
 exports.geinz_webhook_principal = geinz_webhook_principal;
 exports.geinz_procesar_buffer = geinz_procesar_buffer;
-exports.geinz_aviso_qr_escaneado = geinz_aviso_qr_escaneado
-exports.geinz_webhook_telegram=geinz_webhook_telegram
-
+exports.geinz_aviso_qr_escaneado = geinz_aviso_qr_escaneado;
+exports.geinz_webhook_telegram = geinz_webhook_telegram;
 
 const {
-  crearOrdenCulqi, culqiWebhook, confirmarPago
-} = require("./pagos_geinz.js")
+  crearOrdenCulqi,
+  culqiWebhook,
+  confirmarPago,
+} = require("./pagos_geinz.js");
 
-exports.crearOrdenCulqi = crearOrdenCulqi
-exports.culqiWebhook = culqiWebhook
-exports.confirmarPago = confirmarPago
-
+exports.crearOrdenCulqi = crearOrdenCulqi;
+exports.culqiWebhook = culqiWebhook;
+exports.confirmarPago = confirmarPago;
 
 const {
   registrarNegocioGeinz,
@@ -188,36 +186,31 @@ const {
 exports.registrarNegocioGeinz = registrarNegocioGeinz;
 exports.notificarNuevoRegistroNegocio = notificarNuevoRegistroNegocio;
 
-
-
-const {
-  enviarMensajeManual
-} = require("./CRM_envio_msje.js");
+const { enviarMensajeManual } = require("./CRM_envio_msje.js");
 exports.enviarMensajeManual = enviarMensajeManual;
 
-
-const { conectarFacebookPage } = require("./facebook_post/conectarFacebookPage.js");
+const {
+  conectarFacebookPage,
+} = require("./facebook_post/conectarFacebookPage.js");
 exports.conectarFacebookPage = conectarFacebookPage;
 
-const {
-  publicarEnFacebookOrganico
-} = require("./facebook_post/fb_post.js")
-exports.publicarEnFacebookOrganico = publicarEnFacebookOrganico
+const { publicarEnFacebookOrganico } = require("./facebook_post/fb_post.js");
+exports.publicarEnFacebookOrganico = publicarEnFacebookOrganico;
 
-const { syncProductoAlgolia, syncCategoriaAlgolia } = require('./algoliaSync');
+const { syncProductoAlgolia, syncCategoriaAlgolia } = require("./algoliaSync");
 
 exports.syncProductoAlgolia = syncProductoAlgolia;
 exports.syncCategoriaAlgolia = syncCategoriaAlgolia;
 
-
 const { qrApi } = require("./qrGenerator.js");
 exports.qrApi = qrApi;
 
-
-const { geinz_webhook_principal_scag_ai, geinz_webhook_telegram_scag_ai } = require("./bot_scag_ai/principal.js");
+const {
+  geinz_webhook_principal_scag_ai,
+  geinz_webhook_telegram_scag_ai,
+} = require("./bot_scag_ai/principal.js");
 exports.geinz_webhook_principal_scag_ai = geinz_webhook_principal_scag_ai;
 exports.geinz_webhook_telegram_scag_ai = geinz_webhook_telegram_scag_ai;
-
 
 // ==================== uso_wisper ====================
 
@@ -265,7 +258,7 @@ exports.transcribirAudio = onRequest(async (req, res) => {
     // limpiar tmp
     try {
       fs.unlinkSync(tmpFilePath);
-    } catch (e) { }
+    } catch (e) {}
 
     res.status(200).json({ texto: transcription.text });
   } catch (e) {
@@ -358,10 +351,13 @@ Texto: "${texto}"`;
   }
 });
 
-
 // ==================== EXTRACTOR DE PROMOCIONES DE LA APP GEINZ ====================
 
-function construir_prompt_NLP_para_busqueda(textoUsuario, categoria, nombreNegocio) {
+function construir_prompt_NLP_para_busqueda(
+  textoUsuario,
+  categoria,
+  nombreNegocio,
+) {
   return `
 [INPUT]
 Texto: "${textoUsuario}"
@@ -390,7 +386,7 @@ function parsearRespuestaJSON(raw) {
   try {
     const lista = JSON.parse(raw);
     if (Array.isArray(lista)) return lista;
-  } catch (_) { }
+  } catch (_) {}
 
   const start = raw.indexOf("[");
   const end = raw.lastIndexOf("]");
@@ -399,7 +395,7 @@ function parsearRespuestaJSON(raw) {
     try {
       const lista = JSON.parse(cleaned);
       if (Array.isArray(lista)) return lista;
-    } catch (_) { }
+    } catch (_) {}
   }
 
   return raw
@@ -424,14 +420,18 @@ exports.extraer_datos_de_texto_completo = onRequest(
       const { texto, categoria_tienda, nombre_negocio } = req.body;
 
       if (!texto || !categoria_tienda) {
-        res.status(400).json({ error: "Faltan parámetros: texto y categoria_tienda son requeridos" });
+        res
+          .status(400)
+          .json({
+            error: "Faltan parámetros: texto y categoria_tienda son requeridos",
+          });
         return;
       }
 
       const prompt = construir_prompt_NLP_para_busqueda(
         texto,
         categoria_tienda,
-        nombre_negocio || ""
+        nombre_negocio || "",
       );
 
       const completion = await openai.chat.completions.create({
@@ -454,9 +454,8 @@ exports.extraer_datos_de_texto_completo = onRequest(
       logger.error("Error en extraer_datos_de_texto_completo:", error);
       res.status(500).json({ error: "Error interno al procesar la solicitud" });
     }
-  }
+  },
 );
-
 
 exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
   // ─── TIMEOUT GLOBAL 9s (Cloud Functions límite = 10s) ────
@@ -507,23 +506,23 @@ exports.filtrar_por_datos_chat_bot = onRequest(async (req, res) => {
 
     const pagosQuery = Array.isArray(resultado?.metodos_pago)
       ? resultado.metodos_pago
-        .slice(0, MAX_ITEMS)
-        .map((p) => String(p).toLowerCase().trim())
-        .filter(Boolean)
+          .slice(0, MAX_ITEMS)
+          .map((p) => String(p).toLowerCase().trim())
+          .filter(Boolean)
       : [];
 
     const comodidadesQuery = Array.isArray(resultado?.comodidades)
       ? resultado.comodidades
-        .slice(0, MAX_ITEMS)
-        .map((c) => String(c).toLowerCase().trim())
-        .filter(Boolean)
+          .slice(0, MAX_ITEMS)
+          .map((c) => String(c).toLowerCase().trim())
+          .filter(Boolean)
       : [];
 
     const productosQuery = Array.isArray(resultado?.productos)
       ? resultado.productos
-        .slice(0, MAX_ITEMS)
-        .map((p) => String(p).toLowerCase().trim())
-        .filter(Boolean)
+          .slice(0, MAX_ITEMS)
+          .map((p) => String(p).toLowerCase().trim())
+          .filter(Boolean)
       : [];
 
     const query = (nombreTienda || productosQuery.join(" ")).slice(0, 200);
@@ -1321,24 +1320,24 @@ exports.buscar_por_nombre__tienda = onRequest(async (req, res) => {
       obtenerDatosPorIds(localidad, ids),
       idsConFlag.length > 0
         ? Promise.all(
-          idsConFlag.map((id) =>
-            obtener_creditos_tienda_fn(id)
-              .then((r) => {
-                const mayor_a_100 = r?.creditos > 100;
-                console.log(
-                  `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
-                );
-                return { id, mayor_a_100 };
-              })
-              .catch((e) => {
-                console.error(
-                  `❌ [creditos] Error obteniendo créditos para ${id}:`,
-                  e.message,
-                );
-                return { id, mayor_a_100: false };
-              }),
-          ),
-        )
+            idsConFlag.map((id) =>
+              obtener_creditos_tienda_fn(id)
+                .then((r) => {
+                  const mayor_a_100 = r?.creditos > 100;
+                  console.log(
+                    `💰 [creditos] ${id} → creditos: ${r?.creditos} | mayor_a_100: ${mayor_a_100}`,
+                  );
+                  return { id, mayor_a_100 };
+                })
+                .catch((e) => {
+                  console.error(
+                    `❌ [creditos] Error obteniendo créditos para ${id}:`,
+                    e.message,
+                  );
+                  return { id, mayor_a_100: false };
+                }),
+            ),
+          )
         : Promise.resolve([]),
     ]);
 
@@ -1490,12 +1489,12 @@ exports.buscar_por_categoria_subcateogira = onRequest(async (req, res) => {
       obtenerDatosPorIds(localidad, ids),
       idsConFlag.length > 0
         ? Promise.all(
-          idsConFlag.map((id) =>
-            obtener_creditos_tienda_fn(id)
-              .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
-              .catch(() => ({ id, mayor_a_100: false })),
-          ),
-        )
+            idsConFlag.map((id) =>
+              obtener_creditos_tienda_fn(id)
+                .then((r) => ({ id, mayor_a_100: r?.creditos > 100 }))
+                .catch(() => ({ id, mayor_a_100: false })),
+            ),
+          )
         : Promise.resolve([]),
     ]);
 
@@ -1657,7 +1656,7 @@ exports.agregar_error_firebase_bot = onRequest(async (req, res) => {
 async function obtenerDatosPorIds(localidad, ids) {
   const db = admin.firestore();
 
-  const ref = db.collection("Tiendas").doc(localidad).collection(localidad);
+  const ref = paths.tiendaCol(localidad, "tiendas");
 
   const resultados = {};
 
@@ -2177,16 +2176,9 @@ exports.agregar_pago_para_el_usuario_tienda = onCall(async (req) => {
     throw new Error("Faltan datos obligatorios");
   }
 
-  const tiendaRef = db
-    .collection("Tiendas")
-    .doc(localdiad)
-    .collection(localdiad)
-    .doc(id_tienda);
+  const tiendaRef = paths.tiendaDoc(localdiad, "tiendas", id_tienda);
 
-  const pagosRef = db
-    .collection("Tiendas")
-    .doc(localdiad)
-    .collection("pagos_tiendas");
+  const pagosRef = paths.tiendaCol(localdiad, "pagos_tiendas");
 
   const result = await db.runTransaction(async (t) => {
     const tiendaSnap = await t.get(tiendaRef);
@@ -2414,11 +2406,7 @@ exports.buscarTiendasSmart = onRequest(async (req, res) => {
       });
     }
 
-    const ref = admin
-      .firestore()
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad);
+    const ref = paths.tiendaCol(localidad, "tiendas");
 
     let resultados = [];
 
@@ -2487,11 +2475,7 @@ exports.buscarTiendas = onRequest(async (req, res) => {
       });
     }
 
-    const ref = admin
-      .firestore()
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad);
+    const ref = paths.tiendaCol(localidad, "tiendas");
 
     const snapshot = await ref.get();
 
@@ -2680,11 +2664,8 @@ exports.buscar_tienda_por_categorias_y_subcategoria = onRequest(
 
       console.log("📡 CONSTRUYENDO QUERY FIRESTORE...");
 
-      let query = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(localidad)
+      let query = paths
+        .tiendaCol(localidad, "tiendas")
         .where("categoria_tienda", "==", categoria);
 
       console.log("🔎 Query base aplicada (categoria)");
@@ -2960,11 +2941,7 @@ exports.obtener_lugares_seguros = onRequest(async (req, res) => {
   try {
     const { localidad, categoria } = req.body;
 
-    let query = admin
-      .firestore()
-      .collection("Tiendas")
-      .doc("salud_seguridad")
-      .collection(localidad);
+    let query = paths.tiendaCol(localidad, "salud_seguridad");
 
     if (categoria && categoria !== "general") {
       query = query.where("categoria", "==", categoria);
@@ -3067,11 +3044,7 @@ exports.obtener_lugares_turisticos_directos = onRequest(async (req, res) => {
       });
     }
 
-    const ref = admin
-      .firestore()
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection("lugares_turisticos");
+    const ref = paths.tiendaCol(localidad, "lugares_turisticos");
 
     const snapshot = await ref.get();
 
@@ -3245,19 +3218,12 @@ exports.webhookCulqi = onRequest(
             return res.status(200).send("ok");
           }
 
-          await db
-            .collection("Tiendas")
-            .doc(data.localidad)
-            .collection(data.localidad)
-            .doc(data.userId)
-            .set(
-              {
-                puntos_tienda: admin.firestore.FieldValue.increment(
-                  data.monedas,
-                ),
-              },
-              { merge: true },
-            );
+          await paths.tiendaDoc(data.localidad,"tiendas",data.userId).set(
+            {
+              puntos_tienda: admin.firestore.FieldValue.increment(data.monedas),
+            },
+            { merge: true },
+          );
 
           await docRef.update({
             estado: "pagado",
@@ -3298,11 +3264,8 @@ exports.enviar_notificacion_con_solo_id = onRequest(async (req, res) => {
     const localidadLower = localidad.toLowerCase().trim();
 
     // 1️⃣ Obtener documento de la tienda
-    const tiendaSnap = await db
-      .collection("Tiendas")
-      .doc(localidadLower)
-      .collection(localidadLower)
-      .doc(id_tienda)
+    const tiendaSnap = await paths
+      .tiendaDoc(localidadLower, "tiendas", id_tienda)
       .get();
 
     if (!tiendaSnap.exists) {
@@ -3419,11 +3382,8 @@ exports.enviar_notificacion_deuda_acumulada = onRequest(async (req, res) => {
          OBTENER TIENDA
       ═══════════════════════════════ */
 
-    const tiendaSnap = await db
-      .collection("Tiendas")
-      .doc(localidadLower)
-      .collection(localidadLower)
-      .doc(id_tienda)
+    const tiendaSnap = await paths
+      .tiendaDoc(localidadLower, "tiendas", id_tienda)
       .get();
 
     if (!tiendaSnap.exists) {
@@ -3698,44 +3658,23 @@ exports.share = onRequest(async (req, res) => {
     //     SELECCIÓN FIRESTORE
     // ============================
     if (tipo === "ti" || tipo === "p") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(localidad)
-        .doc(id);
+      ref = paths.tiendaDoc(localidad, "tiendas", id);
     } else if (tipo === "tu") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(categoria)
-        .doc(id);
+      ref = paths.tiendaDoc(localidad, categoria, id);
     } else if (tipo === "prms") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(coll_completa)
-        .doc(id_promo_compartida);
+      ref = paths.tiendaDoc(localidad, coll_completa, id_promo_compartida);
     } else if (tipo === "scr") {
       ref = admin.firestore().collection("share_screen").doc(mapa_ids_scren);
     } else if (tipo === "prn") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection(localidad)
-        .doc(id)
-        .collection("notificaciones_enviadas")
-        .doc(id_promo_compartida);
+      ref = paths.tiendaDoc(
+        localidad,
+        "tiendas",
+        id,
+        "notificaciones_enviadas",
+        id_promo_compartida,
+      );
     } else if (tipo === "in") {
-      ref = admin
-        .firestore()
-        .collection("Tiendas")
-        .doc(localidad)
-        .collection("geinz_inmobiliaria")
-        .doc(id);
+      ref = paths.tiendaDoc(localidad, "geinz_inmobiliaria", id);
     }
     // rew | rewc | ru | prf → NO FIRESTORE
 
@@ -3813,9 +3752,7 @@ exports.share = onRequest(async (req, res) => {
       } else if (tipo === "in") {
         const promos = data.listaImg || [];
         imagen =
-          promos.length > 0
-            ? promos[0]
-            : "https://geinztech.com/default.jpg";
+          promos.length > 0 ? promos[0] : "https://geinztech.com/default.jpg";
       }
     }
 
@@ -3885,16 +3822,115 @@ exports.share = onRequest(async (req, res) => {
   }
 });
 
+
+
+const PAGINAS_ESTATICAS = {
+  "logindata/login": {
+    titulo: "Iniciar sesión | GeinzWork",
+    descripcion: "Ingresa a tu cuenta de GeinzWork.",
+    imagen: "https://geinztech.com/default.jpg",
+    indexar: true,
+    archivoHtml: "logindata/login.html", // ⚠️ ajustá si el archivo real es otro
+  },
+  "scree/nostros": {
+    titulo: "Sobre Nosotros | GeinzWork",
+    descripcion:
+      "Conoce más sobre GeinzWork, la plataforma que conecta tiendas y turismo local.",
+    imagen: "https://geinztech.com/default.jpg",
+    indexar: true,
+    archivoHtml: "scree/nostros.html", // ⚠️ ajustá si el archivo real es otro
+  },
+  generatorqr: {
+    titulo: "Generador de QR | GeinzWork",
+    descripcion: "Genera tu código QR gratis con GeinzWork.",
+    imagen: "https://geinztech.com/default.jpg",
+    indexar: true,
+    archivoHtml: "generatorqr.html", // ⚠️ ajustá si el archivo real es otro
+  },
+};
+
+exports.staticSSR = onRequest(async (req, res) => {
+  if (req.hostname !== "geinztech.com") {
+    return res.redirect(301, `https://geinztech.com${req.originalUrl}`);
+  }
+
+  const ruta = req.path.replace(/^\//, "").trim();
+  const pagina = PAGINAS_ESTATICAS[ruta];
+  if (!pagina) return res.status(404).send("No encontrado");
+
+  const userAgent = req.headers["user-agent"] || "";
+
+  const esCrawlerSEO = /googlebot|bingbot/i.test(userAgent);
+  const esPreviewSocial =
+    /whatsapp|telegram|twitterbot|facebookexternalhit|facebookbot|linkedinbot|slackbot|discordbot|skype|viber|line|snapchat|pinterest|vkshare|w3c_validator|curl|python|wget/i.test(
+      userAgent,
+    );
+
+  const url = `https://geinztech.com/${ruta}`;
+
+  if (!esCrawlerSEO && !esPreviewSocial) {
+    try {
+      const response = await fetch(`https://geinztech.com/${pagina.archivoHtml}`);
+      const html = await response.text();
+      res.set("Content-Type", "text/html");
+      return res.status(200).send(html);
+    } catch (e) {
+      logger.error(`Error sirviendo ${ruta}:`, e);
+      return res.redirect(302, url);
+    }
+  }
+
+  const robotsTag = pagina.indexar
+    ? '<meta name="robots" content="index, follow">'
+    : '<meta name="robots" content="noindex, nofollow">';
+
+  const ogHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${pagina.titulo}</title>
+  <meta name="description" content="${pagina.descripcion}">
+  <link rel="canonical" href="${url}" />
+  ${robotsTag}
+
+  <meta property="og:type"        content="website" />
+  <meta property="og:site_name"   content="GeinzWork" />
+  <meta property="og:title"       content="${pagina.titulo}" />
+  <meta property="og:description" content="${pagina.descripcion}" />
+  <meta property="og:image"       content="${pagina.imagen}" />
+  <meta property="og:url"         content="${url}" />
+  <meta property="og:locale"      content="es_PE" />
+
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="${pagina.titulo}" />
+  <meta name="twitter:description" content="${pagina.descripcion}" />
+  <meta name="twitter:image"       content="${pagina.imagen}" />
+</head>
+<body>
+  <h1>${pagina.titulo}</h1>
+  <p>${pagina.descripcion}</p>
+  ${esPreviewSocial ? `<script>window.location.href = "${url}";</script>` : ""}
+</body>
+</html>`;
+
+  res.set("Content-Type", "text/html");
+  return res.status(200).send(ogHtml);
+});
+
 // ─────────────────────────────────────────────
 // PERFIL SSR — Social Preview + Redirect SEO/Usuarios
 // ─────────────────────────────────────────────
 exports.perfilSSR = onRequest(async (req, res) => {
+  // FIX: forzar dominio oficial (evita duplicado geinzworkapp.web.app)
+  if (req.hostname !== "geinztech.com") {
+    return res.redirect(301, `https://geinztech.com${req.originalUrl}`);
+  }
+
   const alias = req.path.replace(/^\/perfil\//, "").trim();
   if (!alias) return res.status(404).send("No encontrado");
 
   const userAgent = req.headers["user-agent"] || "";
-
-  // ✅ Log para ver qué bot llega
   logger.info("UA →", userAgent);
 
   const esCrawlerSEO = /googlebot|bingbot/i.test(userAgent);
@@ -3903,17 +3939,13 @@ exports.perfilSSR = onRequest(async (req, res) => {
       userAgent,
     );
 
-  // Usuario normal → sirve perfil.html
   if (!esCrawlerSEO && !esPreviewSocial) {
     try {
       const response = await fetch("https://geinztech.com/perfil.html");
       let html = await response.text();
       html = html
         .replace(/src="\.\/js\//g, 'src="https://geinztech.com/js/')
-        .replace(
-          /href="\.\/style\//g,
-          'href="https://geinztech.com/style/',
-        )
+        .replace(/href="\.\/style\//g, 'href="https://geinztech.com/style/')
         .replace(/href="\.\/img\//g, 'href="https://geinztech.com/img/')
         .replace(/src="\.\/img\//g, 'src="https://geinztech.com/img/')
         .replace(/"\.\//g, '"https://geinztech.com/');
@@ -3935,14 +3967,7 @@ exports.perfilSSR = onRequest(async (req, res) => {
     if (!aliasSnap.exists) return res.status(404).send("Perfil no encontrado");
 
     const { id, localidad } = aliasSnap.data();
-
-    const tiendaSnap = await db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id)
-      .get();
-
+    const tiendaSnap = await paths.tiendaDoc(localidad, "tiendas", id).get();
     if (!tiendaSnap.exists) return res.status(404).send("Tienda no disponible");
 
     const t = tiendaSnap.data();
@@ -3951,8 +3976,7 @@ exports.perfilSSR = onRequest(async (req, res) => {
     const nombre = t.nombre_tienda || "Tienda en Geinz";
     const descripcion = t.descripcion || "";
     const descSeo = t.descripcion_seo || descripcion || "Encuéntralo en Geinz";
-    let logo =
-      t.img_tienda?.logo_tienda || "https://geinztech.com/default.jpg";
+    let logo = t.img_tienda?.logo_tienda || "https://geinztech.com/default.jpg";
 
     const direccion = t.ubicacion?.dirección || "";
     const referencia = t.ubicacion?.referencia || "";
@@ -3972,15 +3996,11 @@ exports.perfilSSR = onRequest(async (req, res) => {
       if (promoImg) {
         logo = promoImg;
       } else {
-        logger.warn(
-          `Promo "${promoId}" no encontrada en lista_img.promociones`,
-        );
+        logger.warn(`Promo "${promoId}" no encontrada en lista_img.promociones`);
       }
     }
     const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
 
-    // ✅ Mismo HTML para AMBOS — crawlerSEO y previewSocial
-    // WhatsApp necesita og:image con URL absoluta HTTPS y sin redirección
     const ogHtml = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -3988,6 +4008,7 @@ exports.perfilSSR = onRequest(async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${nombre} | GeinzWork</title>
   <meta name="description"         content="${descSeo}">
+  <link rel="canonical" href="${url}" />
 
   <meta property="og:type"         content="website" />
   <meta property="og:site_name"    content="GeinzWork" />
@@ -4053,11 +4074,15 @@ exports.perfilSSR = onRequest(async (req, res) => {
   }
 });
 
-
 // ─────────────────────────────────────────────
 // TURISMO SSR — Social Preview + Redirect SEO/Usuarios
 // ─────────────────────────────────────────────
 exports.turismoSSR = onRequest(async (req, res) => {
+  // FIX: forzar dominio oficial (evita duplicado geinzworkapp.web.app)
+  if (req.hostname !== "geinztech.com") {
+    return res.redirect(301, `https://geinztech.com${req.originalUrl}`);
+  }
+
   const alias = req.path.replace(/^\/turismo\//, "").trim();
   if (!alias) return res.status(404).send("No encontrado");
 
@@ -4069,14 +4094,10 @@ exports.turismoSSR = onRequest(async (req, res) => {
       userAgent,
     );
 
-  // ============================
-  //   USUARIO NORMAL → SPA
-  // ============================
   if (!esCrawlerSEO && !esPreviewSocial) {
     try {
       const html = await getTurismoHtml();
       res.set("Content-Type", "text/html");
-      // Cache en CDN de Hosting: 5 min, revalida en background
       res.set(
         "Cache-Control",
         "public, max-age=300, s-maxage=300, stale-while-revalidate=600",
@@ -4091,26 +4112,14 @@ exports.turismoSSR = onRequest(async (req, res) => {
     }
   }
 
-  // ============================
-  //   BOTS → OG META TAGS
-  // ============================
   try {
     const db = admin.firestore();
 
-    // 1) Resolver alias
     const aliasSnap = await db.collection("alias_turismo").doc(alias).get();
     if (!aliasSnap.exists) return res.status(404).send("Lugar no encontrado");
 
     const { id, localidad, categoria } = aliasSnap.data();
-
-    // 2) Documento del lugar
-    const lugarSnap = await db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(categoria)
-      .doc(id)
-      .get();
-
+    const lugarSnap = await paths.tiendaDoc(localidad, categoria, id).get();
     if (!lugarSnap.exists) return res.status(404).send("Lugar no disponible");
 
     const t = lugarSnap.data();
@@ -4122,9 +4131,7 @@ exports.turismoSSR = onRequest(async (req, res) => {
         ? descripcion.slice(0, 117).trim() + "..."
         : descripcion;
 
-    const imagen =
-      t.img?.principal || "https://geinztech.com/default.jpg";
-
+    const imagen = t.img?.principal || "https://geinztech.com/default.jpg";
     const url = `https://geinztech.com/turismo/${alias}`;
 
     const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
@@ -4136,6 +4143,7 @@ exports.turismoSSR = onRequest(async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${titulo} | GeinzWork</title>
   <meta name="description"         content="${descCorta}">
+  <link rel="canonical" href="${url}" />
 
   <meta property="og:type"         content="website" />
   <meta property="og:site_name"    content="GeinzWork" />
@@ -4249,6 +4257,12 @@ exports.sitemap = onRequest(async (req, res) => {
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://geinztech.com/generatorqr</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://geinztech.com/redirect/pantalla_turismo?loc=barranca</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -4305,13 +4319,10 @@ function capitalizeFirstLetter(str) {
 }
 
 async function recalcularCategoria(db, ciudad, categoria) {
-  const snapshot = await db
-    .collection("Tiendas")
-    .doc(ciudad)
-    .collection("promos_ofertas")
+  const snapshot = await paths
+    .tiendaCol(ciudad, "promos_ofertas")
     .where("informacion.categoria", "==", categoria)
     .get();
-
   const tags = new Set();
 
   snapshot.forEach((doc) => {
@@ -4325,11 +4336,7 @@ async function recalcularCategoria(db, ciudad, categoria) {
 
   const tagsArray = Array.from(tags);
 
-  const ref = db
-    .collection("Tiendas")
-    .doc(ciudad)
-    .collection("cache_filtrado")
-    .doc("filtrado");
+const ref = paths.tiendaDoc(ciudad, "cache_filtrado", "filtrado");
 
   if (tagsArray.length === 0) {
     // 🔥 BORRAR categoría si ya no existe
@@ -4400,11 +4407,7 @@ exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
 
     console.log("🗑️ Revisando promociones expiradas...");
 
-    const snapshot = await db
-      .collection("Tiendas")
-      .doc("barranca")
-      .collection("promos_ofertas")
-      .get();
+    const snapshot = await paths.tiendaCol("barranca", "promos_ofertas").get();
 
     if (snapshot.empty) {
       console.log("No hay promociones activas");
@@ -4435,13 +4438,13 @@ exports.eliminarPromocionesExpiradasCadaMinuto = onSchedule(
 
         if (!idTienda) continue;
 
-        const destinoRef = db
-          .collection("Tiendas")
-          .doc("barranca")
-          .collection("barranca")
-          .doc(idTienda)
-          .collection("promociones_geinz")
-          .doc(promoId);
+        const destinoRef = paths.tiendaDoc(
+          "barranca",
+          "tiendas",
+          idTienda,
+          "promociones_geinz",
+          promoId,
+        );
 
         // 1️⃣ mover a historial
         await destinoRef.set({
@@ -4523,16 +4526,13 @@ async function borrarSubcolecciones(docRef) {
 }
 
 exports.verificarMinimoSeguidores = onDocumentCreated(
-  "Tiendas/{localidad}/{localidad}/{idTienda}/seguidores/{idUsuario}",
+  "Tiendas/peru/departamento/lima/provincia/barranca/distrito/{localidad}/tiendas/{idTienda}/seguidores/{idUsuario}",
   async (event) => {
     const { localidad, idTienda } = event.params;
     const db = admin.firestore();
 
-    const tiendaRef = db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(idTienda);
+    const tiendaRef = paths.tiendaDoc(localidad, "tiendas", idTienda); // 👈 antes: tiendaCol(...) sin paths y sin "tiendas"
+
 
     try {
       await db.runTransaction(async (tx) => {
@@ -4600,7 +4600,8 @@ exports.verificarMinimoSeguidores = onDocumentCreated(
 );
 
 exports.alertaSaldoBajo = onDocumentWritten(
-  "Tiendas/{localidad}/{localidad}/{id_tienda}",
+  "Tiendas/peru/departamento/lima/provincia/barranca/distrito/{localidad}/tiendas/{id_tienda}",
+
   async (event) => {
     try {
       console.log("===== TRIGGER alertaSaldoBajo =====");
@@ -5001,15 +5002,9 @@ exports.tiendasGeo = onRequest(async (req, res) => {
 
     // Definimos las 3 colecciones que queremos consultar
     const configuracion = {
-      turismo: db
-        .collection("Tiendas")
-        .doc("barranca")
-        .collection("lugares_turisticos"),
-      seguridad: db
-        .collection("Tiendas")
-        .doc("salud_seguridad")
-        .collection("barranca"),
-      cercanos: db.collection("Tiendas").doc("barranca").collection("barranca"),
+      turismo: paths.tiendaCol("barranca", "lugares_turisticos"),
+      seguridad: paths.tiendaCol("barranca", "salud_seguridad"),
+      cercanos: paths.tiendaCol("barranca","tiendas"),
     };
 
     const respuestaFinal = {};
@@ -5123,14 +5118,9 @@ exports.limpiarPromosExpiradas = onSchedule(
     // Ruta: /Tiendas/{localidad}/cache_filtrado/filtrado
     await Promise.all(
       Object.values(grupos).map(({ localidad, categoria, terminos }) =>
-        db
-          .collection("Tiendas")
-          .doc(localidad)
-          .collection("cache_filtrado")
-          .doc("filtrado")
-          .update({
-            [categoria]: admin.firestore.FieldValue.arrayRemove(...terminos),
-          }),
+        paths.tiendaDoc(localidad, "cache_filtrado", "filtrado").update({
+          [categoria]: admin.firestore.FieldValue.arrayRemove(...terminos),
+        }),
       ),
     );
 

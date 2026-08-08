@@ -8,7 +8,7 @@ const GEMINI_URL =
 const TIMEOUT = 30000;
 const { actualizar_creditos_tienda } = require("./test_db2");
 // ─── Helper: llamada a Gemini ────────────────────────────────────────────────
-
+const paths = require("./rutas_geinz_firebase/rutas");
 async function llamarGemini(parts) {
   if (!GEMINIKEY) {
     throw new HttpsError(
@@ -167,11 +167,7 @@ Reglas estrictas:
     console.log("📅 Fecha/Hora Lima:", { fecha, hora });
 
     // ── 1. Descontar puntos_tienda ──────────────────────────────────
-    const tiendaRef = db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda);
+    const tiendaRef = paths.tiendaDoc(localidad, "tiendas", id_tienda);
 
     await tiendaRef.update({
       puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
@@ -195,13 +191,9 @@ Reglas estrictas:
     }
 
     // ── 3. Guardar historial financiero ─────────────────────────────
-    await db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda)
-      .collection("historial_financiero")
-      .doc(id_transaccion)
+    await paths
+      .tiendaCol(localidad, "tiendas", id_tienda, "historial_financiero")
+
       .set({
         datos_recarga: {
           estado: "Aceptado",
@@ -385,11 +377,7 @@ exports.generar_texto_ia = onCall(async (request) => {
     console.log("📅 Fecha/Hora Lima:", { fecha, hora });
 
     // ── 1. Descontar puntos_tienda ──────────────────────────────────
-    const tiendaRef = db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda);
+    const tiendaRef = paths.tiendaDoc(localidad, "tiendas", id_tienda);
 
     await tiendaRef.update({
       puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
@@ -413,13 +401,14 @@ exports.generar_texto_ia = onCall(async (request) => {
     }
 
     // ── 3. Guardar historial financiero ─────────────────────────────
-    await db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda)
-      .collection("historial_financiero")
-      .doc(id_transaccion)
+    await paths
+      .tiendaCol(
+        localidad,
+        "tiendas",
+        id_tienda,
+        "historial_financiero",
+        id_transaccion,
+      )
       .set({
         datos_recarga: {
           estado: "Aceptado",
@@ -545,11 +534,7 @@ Descripción: ${descTexto}`.trim();
     console.log("📅 Fecha/Hora Lima:", { fecha, hora });
 
     // ── 1. Descontar puntos_tienda ──────────────────────────────────
-    const tiendaRef = db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda);
+    const tiendaRef = paths.tiendaDoc(localidad, "tiendas", id_tienda);
 
     await tiendaRef.update({
       puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
@@ -573,13 +558,14 @@ Descripción: ${descTexto}`.trim();
     }
 
     // ── 3. Guardar historial financiero ─────────────────────────────
-    await db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda)
-      .collection("historial_financiero")
-      .doc(id_transaccion)
+    await paths
+      .tiendaCol(
+        localidad,
+        "tiendas",
+        id_tienda,
+        "historial_financiero",
+        id_transaccion,
+      )
       .set({
         datos_recarga: {
           estado: "Aceptado",
@@ -696,12 +682,7 @@ Descripción: ${descTexto}`.trim();
     console.log("📅 Fecha/Hora Lima:", { fecha, hora });
 
     // ── 1. Descontar puntos_tienda ──────────────────────────────────
-    const tiendaRef = db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda);
-
+    const tiendaRef = paths.tiendaDoc(localidad, "tiendas", id_tienda);
     await tiendaRef.update({
       puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
     });
@@ -724,13 +705,14 @@ Descripción: ${descTexto}`.trim();
     }
 
     // ── 3. Guardar historial financiero ─────────────────────────────
-    await db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda)
-      .collection("historial_financiero")
-      .doc(id_transaccion)
+    await paths
+      .tiendaCol(
+        localidad,
+        "tiendas",
+        id_tienda,
+        "historial_financiero",
+        id_transaccion,
+      )
       .set({
         datos_recarga: {
           estado: "Aceptado",
@@ -954,11 +936,7 @@ ${texto.trim()}
     console.log("📅 Fecha/Hora Lima:", { fecha, hora });
 
     // ── 1. Descontar puntos_tienda ──────────────────────────────────
-    const tiendaRef = db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda);
+    const tiendaRef = paths.tiendaDoc(localidad, "tiendas", id_tienda);
 
     await tiendaRef.update({
       puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
@@ -982,13 +960,14 @@ ${texto.trim()}
     }
 
     // ── 3. Guardar historial financiero ─────────────────────────────
-    await db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda)
-      .collection("historial_financiero")
-      .doc(id_transaccion)
+    await paths
+      .tiendaCol(
+        localidad,
+        "tiendas",
+        id_tienda,
+        "historial_financiero",
+        id_transaccion,
+      )
       .set({
         datos_recarga: {
           estado: "Aceptado",
@@ -1386,19 +1365,12 @@ exports.crearPromocion = onCall(async (request) => {
     };
 
     // ── PASO 5: Referencias Firestore ─────────────────────
-    const ref1 = db
-      .collection("Tiendas")
-      .doc(localidadLower)
-      .collection("promos_ofertas")
-      .doc(id_promocion);
-
-    const ref2 = db
-      .collection("Tiendas")
-      .doc(localidadLower)
-      .collection(localidadLower)
-      .doc(id_tienda)
-      .collection("promociones_geinz")
-      .doc(id_promocion);
+   const ref1 = paths.tiendaDoc(
+  localidadLower, "tiendas", id_tienda, "promos_ofertas", id_promocion,
+);
+const ref2 = paths.tiendaDoc(
+  localidadLower, "tiendas", id_tienda, "promociones_geinz", id_promocion,
+);
 
     const ref3 = db
       .collection("promociones_filtrado_algolia")
@@ -1452,8 +1424,8 @@ exports.crearPromocion = onCall(async (request) => {
     ]);
 
     console.log(`✅ Promoción guardada:
-  - Tiendas/${localidadLower}/promos_ofertas/${id_promocion}
-  - Tiendas/${localidadLower}/${localidadLower}/${id_tienda}/promociones_geinz/${id_promocion}
+  - ${paths.tiendaPathStr(localidadLower, "promos_ofertas", id_promocion)}
+  - ${paths.tiendaPathStr(localidadLower, "tiendas", id_tienda, "promociones_geinz", id_promocion)}
   - promociones_filtrado_algolia/${id_promocion}
   - promosFin/${id_promocion}`);
 
@@ -1474,11 +1446,7 @@ exports.crearPromocion = onCall(async (request) => {
       const fecha = `${String(lima.getMonth() + 1).padStart(2, "0")}/${String(lima.getDate()).padStart(2, "0")}/${lima.getFullYear()}`;
       const hora = `${String(lima.getHours()).padStart(2, "0")}:${String(lima.getMinutes()).padStart(2, "0")}`;
 
-      const tiendaRef = db
-        .collection("Tiendas")
-        .doc(localidadLower)
-        .collection(localidadLower)
-        .doc(id_tienda);
+      const tiendaRef = paths.tiendaDoc(localidadLower, "tiendas", id_tienda);
 
       await tiendaRef.update({
         puntos_tienda: admin.firestore.FieldValue.increment(-monto_descontado),
@@ -1531,7 +1499,8 @@ exports.pagar_plan__usuario = onCall(async (request) => {
 
   try {
     const {
-    pais,provincia,
+      pais,
+      provincia,
       precio_por_moneda,
       id_tienda,
       localidad,
@@ -1547,17 +1516,13 @@ exports.pagar_plan__usuario = onCall(async (request) => {
     if (typeof monedas_costo !== "number" || monedas_costo <= 0)
       throw new HttpsError("invalid-argument", "monedas_costo inválido");
 
-    const refServicio = db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection("tiendas_servicios_geinz_activos")
-      .doc(id_tienda);
+    const refServicio = paths.tiendaDoc(
+      localidad,
+      "tiendas_servicios_geinz_activos",
+      id_tienda,
+    );
 
-    const refTienda = db
-      .collection("Tiendas")
-      .doc(localidad)
-      .collection(localidad)
-      .doc(id_tienda);
+    const refTienda = paths.tiendaDoc(localidad, "tiendas", id_tienda);
 
     // ✅ CAMBIO 1: leer ambos en paralelo, sin lanzar error si servicios no existe
 

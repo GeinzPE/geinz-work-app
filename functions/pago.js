@@ -6,7 +6,7 @@ const {
 } = require("firebase-functions/v2/firestore");
 
 const logger = require("firebase-functions/logger");
-
+const paths = require("./rutas_geinz_firebase/rutas");
 const admin = require("firebase-admin");
 const algoliasearch = require("algoliasearch");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
@@ -31,7 +31,6 @@ const fs = require("fs");
 const path = require("path");
 
 const db = admin.firestore();
-
 
 async function generarPDF({ userId, monedas, chargeId }) {
   const doc = new PDFDocument();
@@ -61,16 +60,16 @@ async function subirPDF(filePath, fileName) {
   const bucket = admin.storage().bucket();
   const file = bucket.file(`boletas/${fileName}`);
 
-await bucket.upload(filePath, {
-  destination: `boletas/${fileName}`,
-  metadata: { contentType: "application/pdf" }
-});
+  await bucket.upload(filePath, {
+    destination: `boletas/${fileName}`,
+    metadata: { contentType: "application/pdf" },
+  });
 
-const file = bucket.file(`boletas/${fileName}`);
+  const file = bucket.file(`boletas/${fileName}`);
 
   const [url] = await file.getSignedUrl({
     action: "read",
-    expires: Date.now() + 24 * 60 * 60 * 1000 // 24h
+    expires: Date.now() + 24 * 60 * 60 * 1000, // 24h
   });
 
   return url;
@@ -85,56 +84,52 @@ async function enviarPDFWhatsApp(numero, pdfUrl) {
       type: "document",
       document: {
         link: pdfUrl,
-        filename: "boleta_geinz.pdf"
-      }
+        filename: "boleta_geinz.pdf",
+      },
     },
     {
       headers: {
         Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-        "Content-Type": "application/json"
-      }
-    }
+        "Content-Type": "application/json",
+      },
+    },
   );
 }
 
 async function enviarWhatsApp(numero, mensaje) {
-
   const telefono = `51${numero}`;
 
-await axios.post(
-  `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
-  {
-    messaging_product: "whatsapp",
-    to: `51${numero}`,
-    type: "text",
-    text: { body: mensaje }
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json"
-    }
-  }
-);
+  await axios.post(
+    `https://graph.facebook.com/v19.0/${PHONE_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: `51${numero}`,
+      type: "text",
+      text: { body: mensaje },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
 }
-
 
 async function sumarSaldo(userId, monedas) {
   console.log("🟡 [sumarSaldo] INICIO");
   console.log("userId:", userId);
   console.log("monedas:", monedas);
 
-  const ref = db
-    .collection("Tiendas")
-    .doc("barranca")
-    .collection("barranca")
-    .doc(userId);
-
+  const ref = paths.tiendaDoc("barranca", "tiendas", userId);
   console.log("📄 Referencia doc creada");
 
-  await ref.set({
-    puntos_tienda: admin.firestore.FieldValue.increment(monedas)
-  }, { merge: true });
+  await ref.set(
+    {
+      puntos_tienda: admin.firestore.FieldValue.increment(monedas),
+    },
+    { merge: true },
+  );
 
   console.log("✅ Saldo actualizado en Firestore");
 
@@ -156,7 +151,6 @@ async function sumarSaldo(userId, monedas) {
 }
 
 exports.confirmarPago = onCall(async (req) => {
-
   const { token, monto, email, userId, monedas } = req.data;
 
   try {
@@ -166,14 +160,14 @@ exports.confirmarPago = onCall(async (req) => {
         amount: Math.round(monto * 100),
         currency_code: "PEN",
         email: email || "test@test.com",
-        source_id: token
+        source_id: token,
       },
       {
         headers: {
           Authorization: `Bearer ${CULQI_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
 
     const charge = response.data;
@@ -185,30 +179,23 @@ exports.confirmarPago = onCall(async (req) => {
       throw new Error("Pago no aprobado");
     }
 
+    const numero = await sumarSaldo(userId, monedas);
 
+    if (typeof numero === "string" && numero.length >= 9) {
+      const filePath = await generarPDF({
+        userId,
+        monedas,
+        chargeId: charge.id,
+      });
 
-const numero = await sumarSaldo(userId, monedas);
+      const pdfUrl = await subirPDF(filePath, `boleta-${charge.id}.pdf`);
 
-if (typeof numero === "string" && numero.length >= 9) {
-
-  const filePath = await generarPDF({
-    userId,
-    monedas,
-    chargeId: charge.id
-  });
-
-  const pdfUrl = await subirPDF(
-    filePath,
-    `boleta-${charge.id}.pdf`
-  );
-
-  await enviarPDFWhatsApp(numero, pdfUrl);
-}
+      await enviarPDFWhatsApp(numero, pdfUrl);
+    }
     return {
       ok: true,
-      chargeId: charge.id
+      chargeId: charge.id,
     };
-
   } catch (error) {
     console.error("ERROR CHARGE:", error.response?.data || error.message);
 

@@ -7,6 +7,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const axios = require("axios");
+const paths = require("../rutas_geinz_firebase/rutas.js");
 
 if (!admin.apps.length) admin.initializeApp();
 
@@ -39,10 +40,9 @@ const publicarEnFacebookOrganico = onRequest(
 
       // 2) Leer page_access_token / page_id desde Firestore
       const db = admin.firestore();
-      const tiendaSnap = await db
-        .doc(`Tiendas/${localidad}/${localidad}/${id_tienda}`)
-        .get();
-
+      const tiendaSnap = await 
+      paths.tiendaDoc(localidad,"tiendas",id_tienda).get();
+  
       const facebookConfig = (tiendaSnap.data() || {}).facebook_page;
       const pageAccessToken = facebookConfig && facebookConfig.page_access_token;
       const pageId = facebookConfig && facebookConfig.page_id;

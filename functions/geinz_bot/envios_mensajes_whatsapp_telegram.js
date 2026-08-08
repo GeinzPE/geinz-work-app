@@ -11,6 +11,7 @@
 // directo a la Graph API de WhatsApp o a la API de Telegram.
 // Todo pasa por aquí.
 // ============================================================
+const paths = require("../rutas_geinz_firebase/rutas.js");
 
 const admin = require("firebase-admin");
 if (!admin.apps.length) {
@@ -728,12 +729,9 @@ async function enviarNotificacionSinSaldo({ id_tienda, localidad, nombre_negocio
 
   const localidadLower = localidad.toLowerCase().trim();
 
-  const tiendaSnap = await db
-    .collection("Tiendas")
-    .doc(localidadLower)
-    .collection(localidadLower)
-    .doc(id_tienda)
-    .get();
+  const tiendaSnap = await 
+  paths.tiendaDoc(localidadLower,"tiendas",id_tienda).get();
+ 
 
   if (!tiendaSnap.exists) throw new Error("Tienda no encontrada.");
 

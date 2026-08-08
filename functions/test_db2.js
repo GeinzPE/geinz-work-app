@@ -1,7 +1,7 @@
 // test_db2.js
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
-
+const paths = require("./rutas_geinz_firebase/rutas.js");
 let db2 = null;
 
 const initDb2 = () => {
@@ -38,14 +38,9 @@ const initDb2 = () => {
    Devuelve { saldo, nombre_tienda, localidad }
 ═══════════════════════════════════════════════════════ */
 async function leer_maestra(id_tienda) {
-  const tiendaSnap = await admin
-    .firestore()
-    .collection("Tiendas")
-    .doc("barranca")
-    .collection("barranca")
-    .doc(id_tienda)
+  const tiendaSnap = await paths
+    .tiendaCol("barranca", "tiendas", id_tienda)
     .get();
-
   if (!tiendaSnap.exists) {
     throw new Error(`Tienda no encontrada en maestra: ${id_tienda}`);
   }
@@ -114,7 +109,7 @@ exports.obtener_creditos_tienda_fn = obtener_creditos_tienda_fn;
    obtener_creditos_tienda — HTTP endpoint
 ═══════════════════════════════════════════════════════ */
 exports.obtener_creditos_tienda = onRequest(
-  { cors: true, region: "us-central1", memory: "128MiB" },
+  { cors: true, region: "us-central1", memory: "256MIB" },
   async (req, res) => {
     try {
       if (req.method !== "POST") return res.status(405).json({ ok: false });
@@ -124,7 +119,9 @@ exports.obtener_creditos_tienda = onRequest(
 
       const database = initDb2();
       if (!database)
-        return res.status(500).json({ ok: false, error: "DB2 no inicializada" });
+        return res
+          .status(500)
+          .json({ ok: false, error: "DB2 no inicializada" });
 
       const preciosSnap = await database
         .collection("precio_apartado")
@@ -132,12 +129,24 @@ exports.obtener_creditos_tienda = onRequest(
         .get();
 
       if (!preciosSnap.exists) {
-        return res.status(500).json({ ok: false, error: "No se encontró precio_apartado/bot_daniel" });
+        return res
+          .status(500)
+          .json({
+            ok: false,
+            error: "No se encontró precio_apartado/bot_daniel",
+          });
       }
 
-      const montoMinimo = Number(preciosSnap.get("monto_minimo_plantilla") || 0);
+      const montoMinimo = Number(
+        preciosSnap.get("monto_minimo_plantilla") || 0,
+      );
       if (!montoMinimo) {
-        return res.status(500).json({ ok: false, error: "monto_minimo_plantilla inválido o en cero" });
+        return res
+          .status(500)
+          .json({
+            ok: false,
+            error: "monto_minimo_plantilla inválido o en cero",
+          });
       }
 
       console.log("💲 monto_minimo_plantilla:", montoMinimo);
@@ -147,9 +156,13 @@ exports.obtener_creditos_tienda = onRequest(
       if (!result.ok) return res.status(404).json({ ok: false, existe: false });
 
       const mayor_a_minimo = result.creditos >= montoMinimo;
-      console.log(`💰 Créditos: ${result.creditos} | Mínimo: ${montoMinimo} | Suficiente: ${mayor_a_minimo}`);
+      console.log(
+        `💰 Créditos: ${result.creditos} | Mínimo: ${montoMinimo} | Suficiente: ${mayor_a_minimo}`,
+      );
 
-      return res.status(200).json({ ok: true, existe: true, mayor_a_100: mayor_a_minimo });
+      return res
+        .status(200)
+        .json({ ok: true, existe: true, mayor_a_100: mayor_a_minimo });
     } catch (e) {
       console.error("❌ Error endpoint obtener_creditos_tienda:", e.message);
       return res.status(500).json({ ok: false });
@@ -185,20 +198,23 @@ async function guardar_historial_para_tienda(
     hour12: false,
   });
 
-  const precioSnap = await initDb2().collection("precio_apartado").doc("app").get();
+  const precioSnap = await initDb2()
+    .collection("precio_apartado")
+    .doc("app")
+    .get();
   const costo_por_moneda = Number(precioSnap.get("costo_por_moneda") || 0);
   const precio_soles = Number(monto_descontado * costo_por_moneda).toFixed(2);
 
   const id_transaccion = crypto.randomUUID();
 
-  await admin
-    .firestore()
-    .collection("Tiendas")
-    .doc(localidad)
-    .collection(localidad)
-    .doc(id_tienda)
-    .collection("historial_financiero")
-    .doc(id_transaccion)
+  await paths
+    .tiendaCol(
+      localidad,
+      "tiendas",
+      id_tienda,
+      "historial_financiero",
+      id_transaccion,
+    )
     .set({
       datos_recarga: {
         estado: "Aceptado",
@@ -235,24 +251,27 @@ async function descontar_creditos_tiendas(
   tipo_paquete = "Envio de plantillas (asistente Whatsapp)",
 ) {
   // 1️⃣ Leer MAESTRA
-  const { saldo: saldo_actual, nombre_tienda, localidad } = await leer_maestra(id_tienda);
+  const {
+    saldo: saldo_actual,
+    nombre_tienda,
+    localidad,
+  } = await leer_maestra(id_tienda);
 
   console.log("💎 saldo maestra →", saldo_actual);
 
   if (saldo_actual < cantidad) {
-    throw new Error(`Créditos insuficientes. Saldo: ${saldo_actual}, requerido: ${cantidad}`);
+    throw new Error(
+      `Créditos insuficientes. Saldo: ${saldo_actual}, requerido: ${cantidad}`,
+    );
   }
 
   // 2️⃣ Calcular saldo restante
   const saldo_restante = saldo_actual - cantidad;
 
   // 3️⃣ Actualizar MAESTRA
-  await admin
-    .firestore()
-    .collection("Tiendas")
-    .doc(localidad)
-    .collection(localidad)
-    .doc(id_tienda)
+  await paths
+    .tiendaCol(localidad, "tiendas", id_tienda)
+
     .update({ puntos_tienda: saldo_restante });
 
   console.log("✅ maestra actualizada →", saldo_restante);
@@ -315,7 +334,12 @@ async function descontarCreditosTienda({ id, token_id, tipo }) {
   }
 
   const descuento = tipo === "whatsapp" ? COSTO_WHATSAPP : COSTO_PLANTILLA;
-  console.log("💲 [descontarCreditosTienda] descuento →", descuento, "| tipo →", tipo);
+  console.log(
+    "💲 [descontarCreditosTienda] descuento →",
+    descuento,
+    "| tipo →",
+    tipo,
+  );
 
   /* ══════════════════════════════════════
      1️⃣ Descontar desde la MAESTRA
@@ -337,7 +361,9 @@ async function descontarCreditosTienda({ id, token_id, tipo }) {
   const now = admin.firestore.Timestamp.now();
   const fechaId = new Date().toISOString().split("T")[0];
   const tiendaRef = database.collection("creditos_tienda").doc(id);
-  const tokenRef = tiendaRef.collection("interaccion_directa_bot").doc(token_id);
+  const tokenRef = tiendaRef
+    .collection("interaccion_directa_bot")
+    .doc(token_id);
   const historialBotRef = tiendaRef.collection("historial_bot_envios").doc();
   const estadisticaRef = tiendaRef.collection("estadisticas").doc(fechaId);
   const fin = admin.firestore.Timestamp.fromMillis(
@@ -429,17 +455,23 @@ async function eliminar_deuda_actual(user_id) {
     const result = await database.runTransaction(async (tx) => {
       const snap = await tx.get(creditosRef);
 
-      if (!snap.exists) throw new Error("La tienda no existe en creditos_tienda");
+      if (!snap.exists)
+        throw new Error("La tienda no existe en creditos_tienda");
 
-      const data           = snap.data() || {};
-      const deuda_actual   = Number(data.deuda_pendiente || 0);
+      const data = snap.data() || {};
+      const deuda_actual = Number(data.deuda_pendiente || 0);
       const creditos_actuales = Number(data.creditos || 0);
 
       console.log("💳 deuda_actual:", deuda_actual);
       console.log("🪙 creditos_actuales:", creditos_actuales);
 
       if (deuda_actual <= 0) {
-        return { ok: true, tenia_deuda: false, deuda_eliminada: 0, creditos_actuales };
+        return {
+          ok: true,
+          tenia_deuda: false,
+          deuda_eliminada: 0,
+          creditos_actuales,
+        };
       }
 
       tx.update(creditosRef, {
@@ -449,7 +481,12 @@ async function eliminar_deuda_actual(user_id) {
 
       console.log("✅ deuda eliminada");
 
-      return { ok: true, tenia_deuda: true, deuda_eliminada: deuda_actual, creditos_actuales };
+      return {
+        ok: true,
+        tenia_deuda: true,
+        deuda_eliminada: deuda_actual,
+        creditos_actuales,
+      };
     });
 
     return result;

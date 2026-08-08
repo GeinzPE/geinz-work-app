@@ -20,7 +20,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const axios = require("axios");
-
+const paths = require("../rutas_geinz_firebase/rutas.js");
 if (!admin.apps.length) admin.initializeApp();
 
 const GRAPH_API_VERSION = "v19.0";
@@ -87,7 +87,7 @@ const conectarFacebookPage = onRequest(
 
       // 4) Guardar en Firestore
       const db = admin.firestore();
-      await db.doc(`Tiendas/${localidad}/${localidad}/${id_tienda}`).set(
+      await paths.tiendaDoc(localidad,"tiendas",id_tienda).set(
         {
           facebook_page: {
             page_id: paginaElegida.id,

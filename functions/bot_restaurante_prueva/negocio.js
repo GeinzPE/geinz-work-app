@@ -14,8 +14,10 @@ const GEMINI_URL =
 
 // Ruta de ejemplo que compartiste, usada solo como default si no llega
 // "ruta_negocio" en el body (útil para pruebas manuales del endpoint).
-const RUTA_NEGOCIO_DEFAULT = "Tiendas/barranca/barranca/TQmS5RKaSDdKmqPGMUXk";
+// DESPUÉS
+const paths = require("../rutas_geinz_firebase/rutas.js"); // 👈 agregar el import arriba del archivo
 
+const RUTA_NEGOCIO_DEFAULT = paths.tiendaPathStr("barranca", "tiendas", "TQmS5RKaSDdKmqPGMUXk");
 /* =========================================================================
    RAMA NEGOCIO — info del negocio (horario, dirección, descripción, etc.)
    Modelo: gemini-2.5-flash (una sola llamada, contexto mínimo)

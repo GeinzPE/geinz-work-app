@@ -1,6 +1,7 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const OpenAI = require("openai");
 const admin = require("firebase-admin");
+const paths = require("../rutas_geinz_firebase/rutas.js");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -2570,13 +2571,8 @@ async function enviarNotificacionSinSaldo({
 
   const localidadLower = localidad.toLowerCase().trim();
 
-  const tiendaSnap = await db
-    .collection("Tiendas")
-    .doc(localidadLower)
-    .collection(localidadLower)
-    .doc(id_tienda)
-    .get();
-
+  const tiendaSnap = await
+  paths.tiendaDoc(localidadLower,"tiendas",id_tienda).get();
   if (!tiendaSnap.exists) {
     throw new Error("Tienda no encontrada.");
   }

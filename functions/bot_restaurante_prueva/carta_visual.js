@@ -34,17 +34,15 @@ const GEMINI_URL =
    Devuelve: { mensaje, extra, carta, imagenes, tokens }
 ========================================================================= */
 
-const RUTA_CARTA = [
-  "Tiendas", "barranca",
-  "barranca", "TQmS5RKaSDdKmqPGMUXk",
-  "carta",
-];
+// DESPUÉS
+const paths = require("../rutas_geinz_firebase/rutas.js"); // 👈 agregar el import arriba del archivo
+
+const LOCALIDAD_TIENDA = "barranca";
+const ID_TIENDA = "TQmS5RKaSDdKmqPGMUXk";
 
 function cartaCollectionRef() {
-  const [c1, d1, c2, d2, c3] = RUTA_CARTA;
-  return db.collection(c1).doc(d1).collection(c2).doc(d2).collection(c3);
+  return paths.tiendaCol(LOCALIDAD_TIENDA, "tiendas", ID_TIENDA, "carta");
 }
-
 /** Limpia el nombre de una carta: quita guiones bajos y el prefijo "carta_" del id si hiciera falta. */
 function nombreLimpio(doc) {
   const data = doc.data() || {};

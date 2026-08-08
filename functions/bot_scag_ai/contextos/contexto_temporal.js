@@ -7,7 +7,7 @@ const BOT_SCAG_COLLECTION = "bot_scag";
 // ⚠️ Debe ser la MISMA instancia de db2 que usa el resto de tu app.
 // Si ya tienes initDb2() en functions_trabajo.js, lo más simple es
 // importarlo desde ahí para no duplicar la conexión.
-const { initDb2 } = require("../functions_trabajo");
+const { initDb2 } = require("../db");
 
 // ============================================================
 // Guardar contexto temporal (lógica pura, sin req/res)
