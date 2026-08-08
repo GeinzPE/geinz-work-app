@@ -114,8 +114,8 @@ Deploy-Grupo -NombreGrupo "Grupo 6: Notificaciones y alertas" -Funciones @(
 
 Deploy-Grupo -NombreGrupo "Grupo 7: Facebook / Algolia / TTS / utilidades" -Funciones @(
     "conectarFacebookPage",
-    "publicarEnFacebookOrganico",-
-    "syncProductoAlgolia",-
+    "publicarEnFacebookOrganico",
+    "syncProductoAlgolia",
     "syncCategoriaAlgolia",
     "textoAVozOpenAI",
     "textoAVozn8n_elevenlabs_2",
