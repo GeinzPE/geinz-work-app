@@ -212,6 +212,14 @@ const {
 exports.geinz_webhook_principal_scag_ai = geinz_webhook_principal_scag_ai;
 exports.geinz_webhook_telegram_scag_ai = geinz_webhook_telegram_scag_ai;
 
+
+const{
+  triviaForge
+} = require ("./triviaForge/triviaForge.js")
+exports.triviaForge = onRequest(
+  { timeoutSeconds: 120, memory: "1GiB" },
+  triviaForge
+);
 // ==================== uso_wisper ====================
 
 exports.transcribirAudio = onRequest(async (req, res) => {

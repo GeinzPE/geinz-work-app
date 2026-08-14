@@ -28,6 +28,7 @@
     "openai": "^6.35.0",
     "pdfkit": "^0.18.0",
     "puppeteer-core": "^25.3.0",
+    "sharp": "^0.35.3",
     "string-similarity-js": "^2.1.4",
     "uuid": "^14.0.0"
   },
