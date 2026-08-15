@@ -1,17 +1,29 @@
 // triviaForge.js
-// TODO EN UN SOLO ARCHIVO — exporta { triviaForge } para usar en tu index.js:
+// TODO EN UN SOLO ARCHIVO — exporta { triviaForge, ...helpers } para usar en tu index.js
+// y en telegramBot.js (que reutiliza estas funciones directamente, sin pasar por HTTP).
+//
 //   const { triviaForge } = require("./triviaForge");
 //   exports.triviaForge = triviaForge;
 //
 // Dependencias en package.json: "sharp", "firebase-admin"
 //
 // FLUJO:
-//   1) Toma una foto RANDOM de Storage en la carpeta SOURCE_FOLDER (imagen_fb/)
+//   1) Toma una foto RANDOM de Storage de la carpeta que el usuario elija:
+//      problematics_es/ | problematics_en/ | motivaciones_es/ | motivaciones_en/
 //   2) La difumina/edita/le pone la tarjeta de trivia + marca de agua
 //   3) Sube la foto ya editada a Storage en OUTPUT_FOLDER (imagen_fb_editada/)
 //   4) Responde con la trivia + la URL de la foto editada (o el PNG binario si lo pides)
 //
 // Funciona en español o inglés según el parámetro "lang": "es" | "en" (default "es").
+//
+// CARPETAS DE IMÁGENES FUENTE (nuevo):
+//   Hay 2 carpetas nada más en Storage, una por categoría (NO se separan por idioma,
+//   las mismas imágenes sirven para trivia en ES y EN):
+//     problematics/
+//     motivaciones/
+//   Cuando subes una imagen nueva (uploadSourceImage), se convierte a WEBP y se
+//   recorta siempre a formato 9:16 (1080x1920, "reel"), sin importar el ratio
+//   final que se use al momento de generar la trivia.
 //
 // VARIABLES DE ENTORNO:
 //   API_KEYO_OPEN_IA     -> tu API key de OpenAI
@@ -20,8 +32,7 @@
 //   GEMINI_MODEL         -> default "gemini-2.0-flash"
 //   DEFAULT_PROVIDER     -> "openai" | "gemini" (default "openai")
 //
-//   STORAGE_BUCKET       -> nombre del bucket (opcional, usa el bucket default si no lo pones)
-//   SOURCE_FOLDER        -> carpeta de fotos originales (default "imagen_fb/")
+//   STORAGE_BUCKET_MAIN  -> nombre del bucket (opcional, usa el bucket default si no lo pones)
 //   OUTPUT_FOLDER        -> carpeta donde se guarda la foto editada (default "imagen_fb_editada/")
 //
 //   SAVE_TO_FIRESTORE, FIRESTORE_COLLECTION       -> opcional (log de cada post)
@@ -35,10 +46,12 @@
 //   "rubro": "Programación"|"Matemática"|"Programming"|"Math",
 //   "dificultad": "Básico"|"Intermedio"|"Avanzado"|"Basic"|"Intermediate"|"Advanced",
 //   "ratio": "9-16" | "1-1",
+//   "sourceCategory": "problematics" | "motivaciones",   // NUEVO: de qué carpeta sacar la imagen
 //   "titulo": "...", "codigo": "linea1\nlinea2", "pregunta": "...?",  // opcional: modo manual, salta IA
 //   "imageUrl": "https://...",                 // opcional: si NO lo mandas, se toma una RANDOM de Storage
 //   "zoom": 100, "posX": 50, "posY": 50, "brightness": 100, "blur": 8, "overlayOpacity": 60,
-//   "watermarkUrl": "https://.../logo.png",
+//   "watermarkUrl": "https://.../logo.png",    // opcional: URL directa de logo
+//   "useLogo": true,                           // opcional: usa el logo guardado en Storage (problematics/logo.webp)
 //   "watermarkPosition": "bottom-right", "watermarkSize": 64, "watermarkRadius": 12, "watermarkOpacity": 100,
 //   "saveToFirestore": false,
 //   "responseFormat": "json" | "png"            // default "json" -> { trivia, imageUrl }
@@ -61,7 +74,6 @@ const ENV = {
   GEMINI_MODEL: process.env.GEMINI_MODEL || "gemini-2.0-flash",
 
   STORAGE_BUCKET: process.env.STORAGE_BUCKET_MAIN || null,
-  SOURCE_FOLDER: process.env.SOURCE_FOLDER || "imagen_fb/",
   OUTPUT_FOLDER: process.env.OUTPUT_FOLDER || "imagen_fb_editada/",
 
   SAVE_TO_FIRESTORE: (process.env.SAVE_TO_FIRESTORE || "false") === "true",
@@ -86,6 +98,27 @@ function normalizeDificultad(input) {
   return "basic";
 }
 
+/* ============================================================
+   1.1) CATEGORÍAS DE IMÁGENES FUENTE (NUEVO)
+============================================================ */
+const IMAGE_CATEGORIES = {
+  problematics: { es: "Problemáticas", en: "Problematics" },
+  motivaciones: { es: "Motivación", en: "Motivation" }
+};
+const IMAGE_CATEGORY_KEYS = Object.keys(IMAGE_CATEGORIES); // ["problematics", "motivaciones"]
+
+function normalizeSourceCategory(input) {
+  const v = (input || "").toString().toLowerCase();
+  return IMAGE_CATEGORY_KEYS.includes(v) ? v : "problematics";
+}
+
+// Carpeta resultante en Storage para una categoría (UNA sola carpeta por categoría,
+// no se separa por idioma: las mismas imágenes sirven para ES y EN), ej: "problematics/"
+function sourceFolder(category) {
+  const cat = normalizeSourceCategory(category);
+  return `${cat}/`;
+}
+
 function parseParams(body) {
   body = body || {};
   return {
@@ -99,7 +132,9 @@ function parseParams(body) {
     rubroKey: normalizeRubro(body.rubro),
     dificultadKey: normalizeDificultad(body.dificultad),
 
-    ratio: body.ratio === "1-1" ? "1-1" : ENV.DEFAULT_RATIO,
+    ratio: body.ratio === "1-1" ? "1-1" : (body.ratio === "9-16" ? "9-16" : ENV.DEFAULT_RATIO),
+
+    sourceCategory: normalizeSourceCategory(body.sourceCategory),
 
     imageUrl: body.imageUrl || body.imagenUrl || null, // si falta, se usa random de Storage
 
@@ -111,6 +146,7 @@ function parseParams(body) {
     overlayOpacity: clamp(body.overlayOpacity ?? ENV.DEFAULT_OVERLAY_OPACITY, 30, 85),
 
     watermarkUrl: body.watermarkUrl || null,
+    useLogo: body.useLogo === true || body.useLogo === "true",
     watermarkPosition: ["top-left", "top-right", "bottom-left", "bottom-right"].includes(body.watermarkPosition)
       ? body.watermarkPosition : "bottom-right",
     watermarkSize: clamp(body.watermarkSize ?? 72, 32, 140),
@@ -147,8 +183,19 @@ const I18N = {
 /* ============================================================
    3) IA — OpenAI / Gemini (prompt bilingue)
 ============================================================ */
-function buildSystemPrompt(lang, rubroName, dificultadLabel) {
+function buildSystemPrompt(lang, rubroKey, rubroName, dificultadLabel) {
+  const isMath = rubroKey === "math";
+
   if (lang === "en") {
+    if (isMath) {
+      return `Generate a VERY SHORT ${rubroName} trivia at ${dificultadLabel} level, for a small social-media card. ` +
+        `Strict length rules: "titulo" max 5 words, no trailing period, no quotes. "codigo" must contain 2 to 4 lines of PURE MATH ONLY: numbers and arithmetic/algebra/geometry expressions or equations using symbols like + - × ÷ = √ ² ³ π, fractions, or short word problems. ` +
+        `ABSOLUTELY FORBIDDEN in "codigo": any programming syntax — no print(), no function calls, no semicolons, no variable assignments with code style, no quotes, no brackets/parentheses used as code, no words like "print", "console", "return", "function". It must read like something written on a chalkboard, not a script. Use "\\n" to separate lines. ` +
+        `"pregunta" max 10 words, always ends with a question mark, and does not repeat the title. ` +
+        `No theoretical paragraphs or explanations of any kind: only the math expression/equation and the final question (e.g. 'What is the result?', 'Solve for x'). ` +
+        `Respond ONLY in JSON with structure: {"titulo": "...", "codigo": "...", "pregunta": "..."}. All three fields must be written in English. ` +
+        `No text outside the JSON, no markdown code fences (no \`\`\`).`;
+    }
     return `Generate a VERY SHORT ${rubroName} trivia at ${dificultadLabel} level, for a small social-media card with a code-terminal aesthetic. ` +
       `Strict length rules: "titulo" max 5 words, no trailing period, no quotes. "codigo" is a code snippet or expression of 4 to 6 lines MAXIMUM, no comments, no explanations or text outside the code; use "\\n" to separate lines. "pregunta" max 10 words, always ends with a question mark, and does not repeat the title. ` +
       `No theoretical paragraphs, extra context, or explanations of any kind: only the code/expression snippet and the final question ` +
@@ -156,6 +203,17 @@ function buildSystemPrompt(lang, rubroName, dificultadLabel) {
       `Respond ONLY in JSON with structure: {"titulo": "...", "codigo": "...", "pregunta": "..."}. All three fields must be written in English. ` +
       `No text outside the JSON, no markdown code fences (no \`\`\`).`;
   }
+
+  if (isMath) {
+    return `Genera una trivia MUY CORTA de ${rubroName} en nivel ${dificultadLabel}, para una tarjeta pequeña de red social. ` +
+      `Reglas estrictas de longitud: "titulo" máximo 5 palabras, sin punto final, sin comillas. "codigo" debe tener de 2 a 4 líneas de MATEMÁTICA PURA ÚNICAMENTE: números y expresiones o ecuaciones de aritmética/álgebra/geometría usando símbolos como + - × ÷ = √ ² ³ π, fracciones, o un problema corto en palabras. ` +
+      `PROHIBIDO TOTALMENTE en "codigo": cualquier sintaxis de programación — nada de print(), nada de llamadas a funciones, sin punto y coma, sin asignaciones de variables al estilo código, sin comillas, sin paréntesis usados como código, sin palabras como "print", "console", "return", "function". Debe leerse como algo escrito en una pizarra, no como un script. Usa "\\n" para separar líneas. ` +
+      `"pregunta" máximo 10 palabras, siempre termina en signo de interrogación, y no repite el título. ` +
+      `Prohibido incluir párrafos teóricos o explicaciones de ningún tipo: solo la expresión/ecuación matemática y la pregunta final (ej. '¿Cuál es el resultado?', 'Despeja x'). ` +
+      `Responde ÚNICAMENTE en formato JSON con la estructura: {"titulo": "...", "codigo": "...", "pregunta": "..."}. Los tres campos deben estar en español. ` +
+      `No incluyas texto adicional fuera del JSON, ni bloques de código markdown (sin \`\`\`).`;
+  }
+
   return `Genera una trivia MUY CORTA de ${rubroName} en nivel ${dificultadLabel}, para una tarjeta pequeña de red social con estética de terminal de código. ` +
     `Reglas estrictas de longitud: "titulo" máximo 5 palabras, sin punto final, sin comillas. "codigo" es un fragmento de código o expresión de 4 a 6 líneas COMO MÁXIMO, sin comentarios, sin explicaciones ni texto fuera del código; usa "\\n" para separar líneas. "pregunta" máximo 10 palabras, siempre termina en signo de interrogación, y no repite el título. ` +
     `Prohibido incluir párrafos teóricos, contexto adicional o explicaciones de ningún tipo: solo el fragmento de código/expresión y la pregunta final ` +
@@ -215,11 +273,31 @@ async function callGemini(prompt, model) {
   return extractJson(data?.candidates?.[0]?.content?.parts?.[0]?.text);
 }
 
-function sanitizeTrivia(raw, lang) {
+// Si el modelo se equivoca y mete sintaxis de código en una trivia de matemática
+// (ej. print(), function, ;, etc.), la limpiamos como red de seguridad extra.
+function stripProgrammingSyntax(codigo) {
+  return String(codigo)
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .replace(/\b(print|console\.log|return|function|def|let|const|var)\s*\(/gi, "")
+        .replace(/[;{}]/g, "")
+        .replace(/\)\s*$/g, "")
+        .trim()
+    )
+    .filter(Boolean)
+    .join("\n");
+}
+
+function sanitizeTrivia(raw, lang, rubroKey) {
   const t = I18N[lang];
   let titulo = (raw.titulo || "").toString().trim() || t.defaultTitulo;
   let codigo = (raw.codigo || "").toString();
   let pregunta = (raw.pregunta || "").toString().trim();
+
+  if (rubroKey === "math" && /\b(print|console\.log|function|def)\s*\(/i.test(codigo)) {
+    codigo = stripProgrammingSyntax(codigo);
+  }
 
   if (!pregunta) pregunta = t.defaultPregunta;
   if (!pregunta.includes("?")) pregunta += " " + t.defaultPregunta;
@@ -236,9 +314,9 @@ function sanitizeTrivia(raw, lang) {
 
 async function generateTrivia({ provider, model, lang, rubroKey, dificultadKey }) {
   const t = I18N[lang];
-  const prompt = buildSystemPrompt(lang, t.rubroName[rubroKey], t.dificultadLabel[dificultadKey]);
+  const prompt = buildSystemPrompt(lang, rubroKey, t.rubroName[rubroKey], t.dificultadLabel[dificultadKey]);
   const raw = provider === "gemini" ? await callGemini(prompt, model) : await callOpenAI(prompt, model);
-  return sanitizeTrivia(raw, lang);
+  return sanitizeTrivia(raw, lang, rubroKey);
 }
 
 /* ============================================================
@@ -269,33 +347,67 @@ function wrapText(text, maxCharsPerLine) {
 function buildOverlaySVG({ width, height, lang, rubroKey, dificultadKey, titulo, codigo, pregunta }) {
   const t = I18N[lang];
   const isProg = rubroKey === "prog";
-  const accent = isProg ? "#22d3ee" : "#a78bfa";
+  const accent = isProg ? "#22d3ee" : "#c084fc";
+  const accentDark = isProg ? "#0e7490" : "#7e22ce";
   const rubroLabel = t.rubroLabel[rubroKey];
   const dificultadLabel = t.dificultadLabel[dificultadKey];
-  const pad = Math.round(width * 0.045);
+  const pad = Math.round(width * 0.05);
 
-  const cardTop = pad + 40;
-  const cardMaxHeight = Math.round(height * 0.42);
-  const codeLines = String(codigo).split(/\r?\n/).slice(0, 6);
-  const codeFontSize = Math.max(16, Math.round(width * 0.032));
-  const codeLineHeight = Math.round(codeFontSize * 1.5);
-  const codeHeaderH = Math.round(width * 0.09);
-  const codeBodyH = Math.min(cardMaxHeight - codeHeaderH, codeLines.length * codeLineHeight + 24);
-  const cardH = codeHeaderH + Math.max(codeBodyH, codeLineHeight + 24);
+  // --- Badges tipo "pill" arriba ---
+  const badgeY = pad;
+  const badgeH = Math.round(width * 0.055);
+  const rubroFontSize = Math.max(14, Math.round(width * 0.026));
+  const rubroPillW = Math.round(rubroLabel.length * rubroFontSize * 0.62 + 36);
+  const dificPillW = Math.round(dificultadLabel.length * rubroFontSize * 0.62 + 36);
+
+  // --- Tarjeta central ---
+  const cardTop = badgeY + badgeH + Math.round(width * 0.06);
   const cardW = width - pad * 2;
+  const codeLines = String(codigo).split(/\r?\n/).slice(0, 6);
+  const codeFontSize = isProg
+    ? Math.max(16, Math.round(width * 0.032))
+    : Math.max(20, Math.round(width * 0.04));
+  const codeLineHeight = Math.round(codeFontSize * 1.65);
+  const headerH = isProg ? Math.round(width * 0.09) : Math.round(width * 0.075);
+  const innerPadTop = isProg ? headerH + codeLineHeight * 0.9 : headerH + codeLineHeight * 0.55;
+  const bodyH = codeLines.length * codeLineHeight + Math.round(width * 0.05);
+  const cardH = headerH + bodyH;
 
+  const codeAlignX = isProg ? pad + 22 : width / 2;
+  const codeAnchor = isProg ? "start" : "middle";
   const codeTspans = codeLines.map((line, i) =>
-    `<tspan x="${pad + 18}" dy="${i === 0 ? codeHeaderH + codeLineHeight * 0.9 : codeLineHeight}">${escapeXml(line)}</tspan>`
+    `<tspan x="${codeAlignX}" dy="${i === 0 ? innerPadTop : codeLineHeight}">${escapeXml(line)}</tspan>`
   ).join("");
 
-  const preguntaTop = cardTop + cardH + Math.round(width * 0.06);
-  const preguntaFontSize = Math.max(20, Math.round(width * 0.042));
-  const preguntaLines = wrapText(pregunta, 30);
+  const preguntaTop = cardTop + cardH + Math.round(width * 0.09);
+  const preguntaFontSize = Math.max(22, Math.round(width * 0.046));
+  const preguntaLines = wrapText(pregunta, 28);
   const preguntaTspans = preguntaLines.map((line, i) =>
     `<tspan x="${width / 2}" dy="${i === 0 ? 0 : preguntaFontSize * 1.3}">${escapeXml(line)}</tspan>`
   ).join("");
 
-  const tituloFontSize = Math.max(13, Math.round(width * 0.024));
+  const tituloFontSize = Math.max(14, Math.round(width * 0.025));
+
+  // --- CTA como botón/pill al final ---
+  const ctaText = t.cta;
+  const ctaFontSize = Math.round(width * 0.03);
+  const ctaPillW = Math.min(cardW, Math.round(ctaText.length * ctaFontSize * 0.56 + 60));
+  const ctaPillH = Math.round(ctaFontSize * 2.4);
+  const ctaY = height - pad - ctaPillH;
+
+  // Header de la tarjeta: estilo "terminal" para programación, estilo "pizarra" para matemática
+  const headerContent = isProg
+    ? `
+    <circle cx="${pad + 26}" cy="${cardTop + headerH / 2}" r="7" fill="#f87171" opacity="0.85" />
+    <circle cx="${pad + 48}" cy="${cardTop + headerH / 2}" r="7" fill="#facc15" opacity="0.85" />
+    <circle cx="${pad + 70}" cy="${cardTop + headerH / 2}" r="7" fill="#4ade80" opacity="0.85" />
+    <text x="${pad + 92}" y="${cardTop + headerH / 2 + 5}" class="mono" font-size="${tituloFontSize}" font-weight="600" fill="#cbd5e1">${escapeXml(titulo)}</text>`
+    : `
+    <text x="${width / 2}" y="${cardTop + headerH / 2 + 5}" text-anchor="middle" class="disp" font-size="${tituloFontSize + 2}" font-weight="700" letter-spacing="1" fill="${accent}">${escapeXml(titulo.toUpperCase())}</text>`;
+
+  const codeFill = isProg ? "#6ee7b7" : "#f8fafc";
+  const codeFontFamily = isProg ? "mono" : "disp";
+  const codeFontWeight = isProg ? "400" : "700";
 
   return `
 <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
@@ -304,26 +416,48 @@ function buildOverlaySVG({ width, height, lang, rubroKey, dificultadKey, titulo,
       .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
       .disp { font-family: 'Space Grotesk', 'Segoe UI', sans-serif; }
     </style>
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f2430" />
+      <stop offset="100%" stop-color="#14161d" />
+    </linearGradient>
+    <linearGradient id="ctaGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${accent}" />
+      <stop offset="100%" stop-color="${accentDark}" />
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
   </defs>
-  <text x="${pad}" y="${pad + 18}" class="mono" font-size="${tituloFontSize + 2}" font-weight="700" fill="${accent}">${escapeXml(rubroLabel)}</text>
-  <text x="${width - pad}" y="${pad + 18}" text-anchor="end" class="mono" font-size="${tituloFontSize + 2}" font-weight="600" fill="#ffffff">${escapeXml(dificultadLabel)}</text>
-  <g>
-    <rect x="${pad}" y="${cardTop}" width="${cardW}" height="${cardH}" rx="16" fill="#1e1e1e" stroke="rgba(255,255,255,0.1)" />
-    <rect x="${pad}" y="${cardTop}" width="${cardW}" height="${codeHeaderH}" rx="16" fill="rgba(255,255,255,0.03)" />
-    <rect x="${pad}" y="${cardTop + codeHeaderH - 16}" width="${cardW}" height="16" fill="rgba(255,255,255,0.03)" />
-    <circle cx="${pad + 24}" cy="${cardTop + codeHeaderH / 2}" r="7" fill="#f87171" opacity="0.8" />
-    <circle cx="${pad + 46}" cy="${cardTop + codeHeaderH / 2}" r="7" fill="#facc15" opacity="0.8" />
-    <circle cx="${pad + 68}" cy="${cardTop + codeHeaderH / 2}" r="7" fill="#4ade80" opacity="0.8" />
-    <text x="${pad + 90}" y="${cardTop + codeHeaderH / 2 + 5}" class="mono" font-size="${tituloFontSize}" font-weight="600" fill="#cbd5e1">${escapeXml(titulo)}</text>
-    <text x="${pad}" y="${cardTop}" class="mono" font-size="${codeFontSize}" fill="#6ee7b7">${codeTspans}</text>
+
+  <!-- Badges -->
+  <rect x="${pad}" y="${badgeY}" width="${rubroPillW}" height="${badgeH}" rx="${badgeH / 2}" fill="${accent}" />
+  <text x="${pad + rubroPillW / 2}" y="${badgeY + badgeH / 2 + rubroFontSize * 0.35}" text-anchor="middle" class="disp" font-size="${rubroFontSize}" font-weight="700" fill="#0b0f14">${escapeXml(rubroLabel)}</text>
+
+  <rect x="${width - pad - dificPillW}" y="${badgeY}" width="${dificPillW}" height="${badgeH}" rx="${badgeH / 2}" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" />
+  <text x="${width - pad - dificPillW / 2}" y="${badgeY + badgeH / 2 + rubroFontSize * 0.35}" text-anchor="middle" class="disp" font-size="${rubroFontSize}" font-weight="600" fill="#ffffff">${escapeXml(dificultadLabel)}</text>
+
+  <!-- Tarjeta -->
+  <g filter="url(#softShadow)">
+    <rect x="${pad}" y="${cardTop}" width="${cardW}" height="${cardH}" rx="22" fill="url(#cardGrad)" stroke="${accent}" stroke-opacity="0.35" stroke-width="1.5" />
+    <rect x="${pad}" y="${cardTop}" width="${cardW}" height="${headerH}" rx="22" fill="rgba(255,255,255,0.04)" />
+    <rect x="${pad}" y="${cardTop + headerH - 22}" width="${cardW}" height="22" fill="rgba(255,255,255,0.04)" />
+    <rect x="${pad}" y="${cardTop + headerH - 2}" width="${cardW}" height="2" fill="${accent}" opacity="0.4" />
+    ${headerContent}
+    <text x="${codeAlignX}" y="${cardTop}" text-anchor="${codeAnchor}" class="${codeFontFamily}" font-size="${codeFontSize}" font-weight="${codeFontWeight}" fill="${codeFill}">${codeTspans}</text>
   </g>
-  <text x="${width / 2}" y="${preguntaTop}" text-anchor="middle" class="disp" font-size="${preguntaFontSize}" font-weight="700" fill="#facc15">${preguntaTspans}</text>
-  <text x="${width / 2}" y="${height - pad}" text-anchor="middle" class="disp" font-size="${Math.round(width * 0.028)}" font-weight="800" fill="#fbbf24">${escapeXml(t.cta)}</text>
+
+  <!-- Pregunta -->
+  <text x="${width / 2}" y="${preguntaTop}" text-anchor="middle" class="disp" font-size="${preguntaFontSize}" font-weight="800" fill="#facc15">${preguntaTspans}</text>
+
+  <!-- CTA como botón -->
+  <rect x="${(width - ctaPillW) / 2}" y="${ctaY}" width="${ctaPillW}" height="${ctaPillH}" rx="${ctaPillH / 2}" fill="url(#ctaGrad)" filter="url(#softShadow)" />
+  <text x="${width / 2}" y="${ctaY + ctaPillH / 2 + ctaFontSize * 0.35}" text-anchor="middle" class="disp" font-size="${ctaFontSize}" font-weight="800" fill="#0b0f14">${escapeXml(ctaText)}</text>
 </svg>`;
 }
 
 /* ============================================================
-   5) STORAGE — foto random de entrada + subida de la foto editada
+   5) STORAGE — imágenes fuente por categoría, subida,
+      subida de la foto editada, estadísticas, y listados para enviar
 ============================================================ */
 function getBucket() {
   return ENV.STORAGE_BUCKET ? admin.storage().bucket(ENV.STORAGE_BUCKET) : admin.storage().bucket();
@@ -333,6 +467,12 @@ async function fetchBuffer(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`No se pudo descargar la imagen: ${url} (HTTP ${res.status})`);
   return Buffer.from(await res.arrayBuffer());
+}
+
+// URL firmada de corta duración, suficiente para que Telegram la descargue al enviarla
+async function getSignedUrl(file, minutes = 30) {
+  const [url] = await file.getSignedUrl({ action: "read", expires: Date.now() + minutes * 60 * 1000 });
+  return url;
 }
 
 async function getWatermarkFromStorage(lang) {
@@ -346,16 +486,63 @@ async function getWatermarkFromStorage(lang) {
   return buffer;
 }
 
-
-async function getRandomSourceImage() {
+// Toma una imagen random de la carpeta de la categoría (ej: "problematics/")
+// Excluye "logo.webp" por si esa carpeta coincide con la carpeta del logo/marca de agua.
+async function getRandomSourceImage(category = "problematics") {
   const bucket = getBucket();
-  const prefix = ENV.SOURCE_FOLDER;
+  const prefix = sourceFolder(category);
   const [files] = await bucket.getFiles({ prefix });
-  const imageFiles = files.filter((f) => /\.(jpe?g|png|webp)$/i.test(f.name));
-  if (!imageFiles.length) throw new Error(`No se encontraron imágenes en el bucket, carpeta "${prefix}".`);
+  const imageFiles = files.filter((f) => /\.(jpe?g|png|webp)$/i.test(f.name) && !/\/logo\.webp$/i.test(f.name));
+  if (!imageFiles.length) throw new Error(`No se encontraron imágenes en la carpeta "${prefix}".`);
   const chosen = imageFiles[Math.floor(Math.random() * imageFiles.length)];
   const [buffer] = await chosen.download();
   return { buffer, sourceName: chosen.name };
+}
+
+async function deleteSourceImage(sourceName) {
+  if (!sourceName) return;
+  const bucket = getBucket();
+  await bucket.file(sourceName).delete().catch((e) => {
+    console.error(`No se pudo borrar la imagen origen "${sourceName}":`, e.message);
+  });
+}
+
+// Sube una imagen nueva (ej: la que el usuario mandó por Telegram) a la carpeta
+// de la categoría elegida (sin separar por idioma). Siempre se convierte a WEBP
+// y se recorta a 9:16 (1080x1920, formato "reel"), sin importar el ratio final
+// de generación.
+async function uploadSourceImage(buffer, category) {
+  const folder = sourceFolder(category);
+  const optimized = await sharp(buffer)
+    .resize(1080, 1920, { fit: "cover" })
+    .webp({ quality: 82 })
+    .toBuffer();
+
+  const filename = `${folder}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`;
+  const bucket = getBucket();
+  const file = bucket.file(filename);
+  await file.save(optimized, { metadata: { contentType: "image/webp" }, resumable: false });
+
+  return { path: filename, sizeBytes: optimized.length, category: normalizeSourceCategory(category) };
+}
+
+// Cuenta cuántas imágenes hay y cuánto pesan, por cada carpeta de categoría
+async function getStorageStats() {
+  const bucket = getBucket();
+  const stats = [];
+  let totalFiles = 0;
+  let totalBytes = 0;
+
+  for (const category of IMAGE_CATEGORY_KEYS) {
+    const prefix = sourceFolder(category);
+    const [files] = await bucket.getFiles({ prefix });
+    const imageFiles = files.filter((f) => /\.(jpe?g|png|webp)$/i.test(f.name) && !/\/logo\.webp$/i.test(f.name));
+    const bytes = imageFiles.reduce((sum, f) => sum + Number(f.metadata?.size || 0), 0);
+    stats.push({ category, count: imageFiles.length, bytes });
+    totalFiles += imageFiles.length;
+    totalBytes += bytes;
+  }
+  return { stats, totalFiles, totalBytes };
 }
 
 async function uploadEditedImage(buffer) {
@@ -376,6 +563,53 @@ async function uploadEditedImage(buffer) {
     });
     return { path: filename, url: signedUrl };
   }
+}
+
+// Lista imágenes de una carpeta de categoría (para mandárselas al usuario por Telegram).
+// random=true -> orden aleatorio (útil para "mándame 10 cualquiera").
+async function listCategoryImages(category, { limit = 10, random = true } = {}) {
+  const bucket = getBucket();
+  const prefix = sourceFolder(category);
+  const [files] = await bucket.getFiles({ prefix });
+  let imageFiles = files.filter((f) => /\.(jpe?g|png|webp)$/i.test(f.name) && !/\/logo\.webp$/i.test(f.name));
+  const total = imageFiles.length;
+
+  if (random) {
+    imageFiles = imageFiles.sort(() => Math.random() - 0.5);
+  } else {
+    imageFiles = imageFiles.sort((a, b) => new Date(b.metadata?.timeCreated || 0) - new Date(a.metadata?.timeCreated || 0));
+  }
+  const picked = imageFiles.slice(0, limit);
+  const items = await Promise.all(picked.map(async (f) => ({ name: f.name, url: await getSignedUrl(f) })));
+  return { total, items };
+}
+
+// Lista las publicaciones ya generadas (más recientes primero), para mandárselas al usuario
+async function listOutputImages({ limit = 10 } = {}) {
+  const bucket = getBucket();
+  const [files] = await bucket.getFiles({ prefix: ENV.OUTPUT_FOLDER });
+  let imageFiles = files.filter((f) => /\.(png|jpe?g|webp)$/i.test(f.name));
+  const total = imageFiles.length;
+  imageFiles = imageFiles.sort((a, b) => new Date(b.metadata?.timeCreated || 0) - new Date(a.metadata?.timeCreated || 0));
+  const picked = imageFiles.slice(0, limit);
+  const items = await Promise.all(picked.map(async (f) => ({ name: f.name, url: await getSignedUrl(f) })));
+  return { total, items };
+}
+
+// Cuenta y pesa las publicaciones YA GENERADAS (carpeta de salida, imagen_fb_editada/
+// por default). Cada trivia generada se guarda ahí automáticamente, así que esto
+// siempre refleja lo que ya tienes creado, sin necesidad de Firestore.
+async function getOutputStats() {
+  const bucket = getBucket();
+  const [files] = await bucket.getFiles({ prefix: ENV.OUTPUT_FOLDER });
+  const imageFiles = files.filter((f) => /\.(png|jpe?g|webp)$/i.test(f.name));
+  const bytes = imageFiles.reduce((sum, f) => sum + Number(f.metadata?.size || 0), 0);
+  const lastFiles = imageFiles
+    .slice()
+    .sort((a, b) => new Date(b.metadata?.timeCreated || 0) - new Date(a.metadata?.timeCreated || 0))
+    .slice(0, 5)
+    .map((f) => ({ name: f.name, createdAt: f.metadata?.timeCreated || null }));
+  return { count: imageFiles.length, bytes, lastFiles };
 }
 
 /* ============================================================
@@ -440,7 +674,10 @@ async function buildImage(params, trivia, sourceBuffer) {
     { input: Buffer.from(svgOverlay), top: 0, left: 0 }
   ];
 
-  if (params.watermarkUrl) {
+  // Marca de agua: se activa con una URL directa (watermarkUrl) O pidiendo el logo
+  // guardado en Storage (useLogo). Antes, la rama de Storage nunca se ejecutaba
+  // porque estaba anidada dentro de un "if (watermarkUrl)" — ya corregido aquí.
+  if (params.watermarkUrl || params.useLogo) {
     const rawWm = params.watermarkUrl
       ? await fetchBuffer(params.watermarkUrl)
       : await getWatermarkFromStorage(params.lang);
@@ -467,6 +704,7 @@ async function saveTriviaPost({ params, trivia, sourceName, outputPath, outputUr
     rubro: params.rubroKey,
     dificultad: params.dificultadKey,
     ratio: params.ratio,
+    sourceCategory: params.sourceCategory,
     titulo: trivia.titulo,
     codigo: trivia.codigo,
     pregunta: trivia.pregunta,
@@ -478,7 +716,7 @@ async function saveTriviaPost({ params, trivia, sourceName, outputPath, outputUr
 }
 
 /* ============================================================
-   8) HANDLER — esto es lo único que usas en tu index.js
+   8) HANDLER — esto es lo único que usas en tu index.js para el endpoint HTTP
 ============================================================ */
 async function triviaForge(req, res) {
   res.set("Access-Control-Allow-Origin", "*");
@@ -495,14 +733,14 @@ async function triviaForge(req, res) {
 
   try {
     const trivia = (params.titulo && params.codigo && params.pregunta)
-      ? sanitizeTrivia(params, params.lang)
+      ? sanitizeTrivia(params, params.lang, params.rubroKey)
       : await generateTrivia(params);
 
     let sourceBuffer, sourceName = null;
     if (params.imageUrl) {
       sourceBuffer = await fetchBuffer(params.imageUrl);
     } else {
-      const picked = await getRandomSourceImage();
+      const picked = await getRandomSourceImage(params.sourceCategory);
       sourceBuffer = picked.buffer;
       sourceName = picked.sourceName;
     }
@@ -534,4 +772,24 @@ async function triviaForge(req, res) {
   }
 }
 
-module.exports = { triviaForge };
+module.exports = {
+  triviaForge,
+  // Reutilizables por telegramBot.js (o cualquier otro consumidor interno)
+  parseParams,
+  generateTrivia,
+  sanitizeTrivia,
+  getRandomSourceImage,
+  uploadSourceImage,
+  getStorageStats,
+  getOutputStats,
+  listCategoryImages,
+  listOutputImages,
+  deleteSourceImage,
+  buildImage,
+  uploadEditedImage,
+  I18N,
+  IMAGE_CATEGORIES,
+  IMAGE_CATEGORY_KEYS,
+  normalizeSourceCategory,
+  sourceFolder
+};

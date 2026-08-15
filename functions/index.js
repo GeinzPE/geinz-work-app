@@ -220,6 +220,14 @@ exports.triviaForge = onRequest(
   { timeoutSeconds: 120, memory: "1GiB" },
   triviaForge
 );
+
+const{
+  telegramWebhook
+} = require ("./triviaForge/telegram_bot_forge.js")
+exports.telegramWebhook = onRequest(
+  { timeoutSeconds: 60, memory: "512MiB" },
+  telegramWebhook
+);
 // ==================== uso_wisper ====================
 
 exports.transcribirAudio = onRequest(async (req, res) => {
