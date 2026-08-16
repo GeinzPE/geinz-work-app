@@ -163,23 +163,39 @@ function parseParams(body) {
 ============================================================ */
 const I18N = {
   es: {
-    rubroLabel: { prog: "💻 PROGRAMACIÓN", math: "🧮 MATEMÁTICA" },
+    rubroLabel: { prog: "</> PROGRAMACIÓN", math: "∑ MATEMÁTICA" },
     rubroName: { prog: "Programación", math: "Matemática" },
     dificultadLabel: { basic: "Básico", intermediate: "Intermedio", advanced: "Avanzado" },
-    cta: "👇 Deja tu respuesta en los comentarios",
+    cta: "▼ Deja tu respuesta en los comentarios",
     defaultTitulo: "Reto rápido",
     defaultPregunta: "¿Cuál es la respuesta?"
   },
   en: {
-    rubroLabel: { prog: "💻 PROGRAMMING", math: "🧮 MATH" },
+    rubroLabel: { prog: "</> PROGRAMMING", math: "∑ MATH" },
     rubroName: { prog: "Programming", math: "Math" },
     dificultadLabel: { basic: "Basic", intermediate: "Intermediate", advanced: "Advanced" },
-    cta: "👇 Leave your answer in the comments",
+    cta: "▼ Leave your answer in the comments",
     defaultTitulo: "Quick challenge",
     defaultPregunta: "What's the answer?"
   }
 };
 
+const HASHTAGS = {
+  es: {
+    prog: "#programacion #python #codigo #desarrolladores #tech",
+    math: "#matematicas #reto #logica #aprende #tech"
+  },
+  en: {
+    prog: "#coding #python #programming #developers #tech",
+    math: "#math #challenge #logic #learn #tech"
+  }
+};
+
+function buildHashtags(lang, rubroKey) {
+  const l = lang === "en" ? "en" : "es";
+  const r = rubroKey === "math" ? "math" : "prog";
+  return HASHTAGS[l][r];
+}
 /* ============================================================
    3) IA — OpenAI / Gemini (prompt bilingue)
 ============================================================ */
@@ -791,5 +807,6 @@ module.exports = {
   IMAGE_CATEGORIES,
   IMAGE_CATEGORY_KEYS,
   normalizeSourceCategory,
-  sourceFolder
+  sourceFolder,
+    buildHashtags,
 };
