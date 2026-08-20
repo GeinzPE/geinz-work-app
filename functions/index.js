@@ -228,6 +228,19 @@ exports.telegramWebhook = onRequest(
   { timeoutSeconds: 60, memory: "512MiB" },
   telegramWebhook
 );
+
+
+const { telegramWebhook: telegramWebhookEducativo } = require("./bot_educativo_code/telegramBot.js");
+
+exports.telegramWebhookEducativo = onRequest(
+  {
+    timeoutSeconds: 540, // renderizar diapositivas + narrar + armar video tarda
+    memory: "2GiB",
+    concurrency: 1, // Puppeteer/ffmpeg no son livianos; evita instancias compartidas
+  },
+  telegramWebhookEducativo,
+);
+
 // ==================== uso_wisper ====================
 
 exports.transcribirAudio = onRequest(async (req, res) => {
