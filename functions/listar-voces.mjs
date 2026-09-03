@@ -2,7 +2,7 @@ import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 async function main() {
   const client = new ElevenLabsClient({
-    apiKey:"sk_a22b62318e89fb62af8fc3f62d254891366caff8a5ff3e8d", "sk_bcc6c1460ddd2dbda38e19433e0a22ba38d40594b61dd4fb","sk_fb27e76dbb71329ee9f64c03d860b2537083c0350b9a4686"// usa variable de entorno, no la key en texto plano
+    apiKey:"sk_8ee3190879e1c6fcc988ee089c67a080e91c9c484aa386f8"// usa variable de entorno, no la key en texto plano
   });
 
   // Traemos también la info de suscripción para saber el tier actual

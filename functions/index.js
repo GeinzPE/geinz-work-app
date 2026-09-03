@@ -230,6 +230,27 @@ exports.telegramWebhook = onRequest(
 );
 
 
+
+const { checkScheduledPublications, telegramWebhook_aprende_code } = require('./bot_aprende_code/telegram.js');
+
+exports.checkScheduledPublications = checkScheduledPublications;
+exports.telegramWebhook_aprende_code = telegramWebhook_aprende_code;
+
+
+
+
+const { textToSpeech_granja_eleven } = require('./granjabots/granjabots_elevenlabs.js');
+
+exports.textToSpeech_granja_eleven = onRequest(
+  {
+    region: 'us-central1',
+    memory: '256MiB',
+    timeoutSeconds: 60,
+    cors: true,
+  },
+  textToSpeech_granja_eleven   // 👈 corregido
+);
+
 const { telegramWebhook: telegramWebhookEducativo } = require("./bot_educativo_code/telegramBot.js");
 
 exports.telegramWebhookEducativo = onRequest(
@@ -240,6 +261,17 @@ exports.telegramWebhookEducativo = onRequest(
   },
   telegramWebhookEducativo,
 );
+
+
+
+const { telegramWebhook_gastos_geinz_bot, dailyCheck, weeklyReport, monthlyReport,debtReminderCheck } = require("./bot_gastos_data/gastos.js");
+
+exports.telegramWebhook_gastos_geinz_bot = telegramWebhook_gastos_geinz_bot;
+exports.dailyCheck = dailyCheck;
+exports.weeklyReport = weeklyReport;
+exports.monthlyReport = monthlyReport;
+exports.debtReminderCheck = debtReminderCheck;
+
 
 // ==================== uso_wisper ====================
 
