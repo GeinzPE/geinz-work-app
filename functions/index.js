@@ -53,6 +53,7 @@ const openai = new OpenAI({
 });
 const similarity = require("string-similarity-js");
 
+
 const Busboy = require("busboy");
 const os = require("os");
 const {
@@ -230,11 +231,12 @@ exports.telegramWebhook = onRequest(
 );
 
 
-
+/*
 const { checkScheduledPublications, telegramWebhook_aprende_code } = require('./bot_aprende_code/telegram.js');
 
 exports.checkScheduledPublications = checkScheduledPublications;
 exports.telegramWebhook_aprende_code = telegramWebhook_aprende_code;
+
 
 
 
@@ -250,7 +252,6 @@ exports.textToSpeech_granja_eleven = onRequest(
   },
   textToSpeech_granja_eleven   // 👈 corregido
 );
-
 const { telegramWebhook: telegramWebhookEducativo } = require("./bot_educativo_code/telegramBot.js");
 
 exports.telegramWebhookEducativo = onRequest(
@@ -261,6 +262,7 @@ exports.telegramWebhookEducativo = onRequest(
   },
   telegramWebhookEducativo,
 );
+*/
 
 
 
@@ -5188,3 +5190,142 @@ exports.limpiarPromosExpiradas = onSchedule(
     logger.info("✅ Cache limpiado.");
   },
 );
+
+
+
+
+async function enviarNotificacionFCM_tienda_web({
+  token,
+  title,
+  body,
+  link,
+  logo,
+  idTienda,
+  idAnuncio,
+  tipo_notificacion,
+  prioridad,
+}) {
+  const message = {
+    token: token,
+    webpush: {
+      headers: {
+        Urgency: prioridad === "high" ? "high" : "normal",
+        TTL: "86400", // 24h — cuánto tiempo el push server reintenta si el dispositivo está offline
+      },
+      notification: {
+        title: title,
+        body: body,
+        icon: "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp_192x192.png?alt=media&token=43cae688-398c-4cbb-a497-443b45eceb6b",
+        badge: logo,
+        image: logo,
+        requireInteraction: prioridad === "high",
+        vibrate: [200, 100, 200],
+      },
+      fcmOptions: {
+        link: link,
+      },
+      data: {
+        idTienda: idTienda || "",
+        idAnuncio: idAnuncio || "",
+        tipo_notificacion: tipo_notificacion || "",
+        link: link || "",
+      },
+    },
+    android: {
+      priority: prioridad === "high" ? "high" : "normal",
+      ttl: 86400000, // en ms para android
+      notification: {
+        title: title,
+        body: body,
+        imageUrl: logo,
+      },
+      data: {
+        link: link || "",
+        idTienda: idTienda || "",
+        idAnuncio: idAnuncio || "",
+        tipo_notificacion: tipo_notificacion || "",
+      },
+    },
+    data: {
+      title: title,
+      body: body,
+      link: link || "",
+      idTienda: idTienda || "",
+      idAnuncio: idAnuncio || "",
+      tipo_notificacion: tipo_notificacion || "",
+    },
+  };
+
+  try {
+    const resultado = await admin.messaging().send(message);
+    console.log("✅ FCM enviado OK:", resultado, "→ token:", token.slice(0, 20) + "...");
+    return { success: true, messageId: resultado };
+  } catch (error) {
+    console.error("❌ FCM falló:", error.code, "|", error.message, "→ token:", token.slice(0, 20) + "...");
+
+    // Tokens muertos — esto es la causa #1 de "a veces no llega"
+    const tokenInvalido =
+      error.code === "messaging/registration-token-not-registered" ||
+      error.code === "messaging/invalid-registration-token" ||
+      error.code === "messaging/invalid-argument";
+
+    return {
+      success: false,
+      error: error.message,
+      code: error.code,
+      tokenInvalido,
+    };
+  }
+}
+
+exports.enviar_notificacion_con_solo_id_desde_la_web = onRequest(async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") return res.status(405).send("Método no permitido");
+
+  try {
+    const {
+      token, title, body, link, logo,
+      id_tienda, idAnuncio, tipo_notificacion, prioridad,
+    } = req.body || {};
+
+    if (!token) {
+      return res.status(400).json({ ok: false, error: "Falta el parámetro 'token'" });
+    }
+    if (!title || !body) {
+      return res.status(400).json({ ok: false, error: "Faltan 'title' y/o 'body'" });
+    }
+
+    const resultado = await enviarNotificacionFCM_tienda_web({
+      token, title, body,
+      link: link || "https://geinztech.com",
+      logo: logo || "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+      idTienda: id_tienda || "",
+      idAnuncio: idAnuncio || "",
+      tipo_notificacion: tipo_notificacion || "logo",
+      prioridad: prioridad || "high",
+    });
+
+    if (!resultado.success) {
+      // Ahora SÍ ves en Postman si el fallo fue real, no un "ok: true" falso
+      return res.status(resultado.tokenInvalido ? 410 : 500).json({
+        ok: false,
+        error: resultado.error,
+        code: resultado.code,
+        tokenInvalido: resultado.tokenInvalido,
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      mensaje: "Notificación enviada correctamente",
+      messageId: resultado.messageId,
+    });
+  } catch (error) {
+    console.error("🔥 Error inesperado:", error);
+    return res.status(500).json({ ok: false, error: error.message, code: error.code || null });
+  }
+});
