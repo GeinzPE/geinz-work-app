@@ -53,7 +53,6 @@ const openai = new OpenAI({
 });
 const similarity = require("string-similarity-js");
 
-
 const Busboy = require("busboy");
 const os = require("os");
 const {
@@ -213,23 +212,17 @@ const {
 exports.geinz_webhook_principal_scag_ai = geinz_webhook_principal_scag_ai;
 exports.geinz_webhook_telegram_scag_ai = geinz_webhook_telegram_scag_ai;
 
-
-const{
-  triviaForge
-} = require ("./triviaForge/triviaForge.js")
+const { triviaForge } = require("./triviaForge/triviaForge.js");
 exports.triviaForge = onRequest(
   { timeoutSeconds: 120, memory: "1GiB" },
-  triviaForge
+  triviaForge,
 );
 
-const{
-  telegramWebhook
-} = require ("./triviaForge/telegram_bot_forge.js")
+const { telegramWebhook } = require("./triviaForge/telegram_bot_forge.js");
 exports.telegramWebhook = onRequest(
   { timeoutSeconds: 60, memory: "512MiB" },
-  telegramWebhook
+  telegramWebhook,
 );
-
 
 /*
 const { checkScheduledPublications, telegramWebhook_aprende_code } = require('./bot_aprende_code/telegram.js');
@@ -264,9 +257,17 @@ exports.telegramWebhookEducativo = onRequest(
 );
 */
 
+const { generarSonidosMesas } = require("./voces_mesas/mesa_voces.js");
 
+exports.generarSonidosMesas = generarSonidosMesas;
 
-const { telegramWebhook_gastos_geinz_bot, dailyCheck, weeklyReport, monthlyReport,debtReminderCheck } = require("./bot_gastos_data/gastos.js");
+const {
+  telegramWebhook_gastos_geinz_bot,
+  dailyCheck,
+  weeklyReport,
+  monthlyReport,
+  debtReminderCheck,
+} = require("./bot_gastos_data/gastos.js");
 
 exports.telegramWebhook_gastos_geinz_bot = telegramWebhook_gastos_geinz_bot;
 exports.dailyCheck = dailyCheck;
@@ -274,6 +275,10 @@ exports.weeklyReport = weeklyReport;
 exports.monthlyReport = monthlyReport;
 exports.debtReminderCheck = debtReminderCheck;
 
+const {
+  generarDocumentoLegal,
+} = require("./generarDocumentoLegal/generarDocumentoLegal.js");
+exports.generarDocumentoLegal = generarDocumentoLegal;
 
 // ==================== uso_wisper ====================
 
@@ -3822,7 +3827,13 @@ exports.share = onRequest(async (req, res) => {
     // ============================
     let destino;
 
-    const BASE = "https://geinztech.com";
+    const hostnameActual = obtenerHostname(req);
+    const esDominioCore = ["geinztech.com", "www.geinztech.com"].includes(
+      hostnameActual,
+    );
+    const BASE = esDominioCore
+      ? "https://geinztech.com"
+      : `https://${hostnameActual}`;
 
     if (tipo === "ti" || tipo === "p") {
       destino = `${BASE}/redirect?t=${tipo}&id=${id}&l=${localidadRaw}&c=${categoria}`;
@@ -3866,6 +3877,7 @@ exports.share = onRequest(async (req, res) => {
           <meta property="og:image:height" content="630" />
         <meta property="og:description" content="${descripcion}" />
           <meta property="og:type" content="website" />
+                <meta property="og:url" content="${BASE}${req.originalUrl}" />
         </head>
         <body>
           <script>
@@ -3978,19 +3990,291 @@ exports.staticSSR = onRequest(async (req, res) => {
   res.set("Content-Type", "text/html");
   return res.status(200).send(ogHtml);
 });
-
+function obtenerHostname(req) {
+  const raw =
+    req.headers["x-original-host"] ||
+    req.headers["x-forwarded-host"] ||
+    req.headers.host ||
+    req.hostname ||
+    "";
+  return raw.split(",")[0].trim().toLowerCase().replace(/:\d+$/, "");
+}
 // ─────────────────────────────────────────────
 // PERFIL SSR — Social Preview + Redirect SEO/Usuarios
 // ─────────────────────────────────────────────
 exports.perfilSSR = onRequest(async (req, res) => {
-  // FIX: forzar dominio oficial (evita duplicado geinzworkapp.web.app)
-  if (req.hostname !== "geinztech.com") {
+  res.set("Cache-Control", "no-store");
+
+  const hostname = obtenerHostname(req);
+
+  // 1) Anti-duplicado: los subdominios de Firebase Hosting siempre
+  //    deben caer en el dominio oficial (esto NO afecta a los dominios custom).
+  if (hostname.endsWith(".web.app") || hostname.endsWith(".firebaseapp.com")) {
     return res.redirect(301, `https://geinztech.com${req.originalUrl}`);
   }
 
+  const esGeinzCore =
+    hostname === "geinztech.com" || hostname === "www.geinztech.com";
+
+  const db = admin.firestore();
+
+  // 2) Dominio hijo (custom domain de un negocio) sirviendo su "home" en "/"
+  if (!esGeinzCore && req.path === "/") {
+    return manejarDominioCustom(req, res, db, hostname);
+  }
+  if (esGeinzCore && req.path === "/") {
+    try {
+      const response = await fetch("https://geinztech.com/app-shell.html");
+      const html = await response.text();
+      res.set("Content-Type", "text/html");
+      return res.status(200).send(html);
+    } catch (e) {
+      logger.error("Error sirviendo app-shell.html:", e);
+      return res.status(500).send("Error interno");
+    }
+  }
+
+  // 3) Flujo actual sobre geinztech.com/perfil/:alias
   const alias = req.path.replace(/^\/perfil\//, "").trim();
   if (!alias) return res.status(404).send("No encontrado");
 
+  const aliasSnap = await db.collection("alias_tiendas").doc(alias).get();
+  if (!aliasSnap.exists) return res.status(404).send("Perfil no encontrado");
+
+  const { id, localidad } = aliasSnap.data();
+  return manejarPerfil(req, res, db, {
+    id,
+    localidad,
+    promoId: req.query.p || null,
+  });
+});
+
+const PAGINAS_LEGALES = {
+  "/libro_reclamaciones": "/legal/libro_reclamaciones.html",
+  "/terminos_condiciones": "/legal/terminos_condiciones.html",
+  "/politicas_privacidad": "/legal/politicas_privacidad.html",
+  "/seguimiento_reclamaciones": "/legal/seguimiento_reclamaciones.html",
+};
+
+exports.legalSSR = onRequest(async (req, res) => {
+  const hostname = obtenerHostname(req);
+  const esGeinzCore =
+    hostname === "geinztech.com" || hostname === "www.geinztech.com";
+
+  if (esGeinzCore) {
+    return res.redirect(302, "https://geinztech.com/");
+  }
+
+  const archivo = PAGINAS_LEGALES[req.path];
+  if (!archivo) return res.status(404).send("No encontrado");
+
+  const db = admin.firestore();
+  const negocio = await resolverNegocioPorDominio(db, hostname);
+  if (!negocio) {
+    return res
+      .status(404)
+      .set("Cache-Control", "private, no-store")
+      .send(
+        `DEBUG hostname=${hostname} | host=${req.headers.host} | xfh=${req.headers["x-forwarded-host"]} | req.hostname=${req.hostname}`,
+      );
+  }
+
+  try {
+    const response = await fetch(`https://geinztech.com${archivo}`);
+    let html = await response.text();
+
+    html = html
+      .replace(/src="\.\/js\//g, 'src="https://geinztech.com/js/')
+      .replace(/href="\.\/style\//g, 'href="https://geinztech.com/style/')
+      .replace(/href="\.\/img\//g, 'href="https://geinztech.com/img/')
+      .replace(/src="\.\/img\//g, 'src="https://geinztech.com/img/')
+      .replace(/"\.\//g, '"https://geinztech.com/');
+
+    const inyeccion = `<script>window.__NEGOCIO_ID__=${JSON.stringify(negocio.id)};window.__NEGOCIO_LOCALIDAD__=${JSON.stringify(negocio.localidad)};</script>`;
+    html = html.replace("</head>", `${inyeccion}</head>`);
+
+    res.set("Content-Type", "text/html");
+    return res.status(200).send(html);
+  } catch (e) {
+    logger.error("Error sirviendo página legal:", e);
+    return res.status(500).send("Error interno");
+  }
+});
+
+exports.fidelizacionSSR = onRequest(async (req, res) => {
+  const hostname = obtenerHostname(req);
+  const esGeinzCore =
+    hostname === "geinztech.com" || hostname === "www.geinztech.com";
+  if (esGeinzCore) return res.redirect(302, "https://geinztech.com/");
+
+  // /fidelizacion/CODIGO123 → extraemos el código igual que hoy sacarías el alias
+  const codigo = req.path.replace(/^\/fidelizacion\//, "").trim();
+
+  const db = admin.firestore();
+  const negocio = await resolverNegocioPorDominio(db, hostname);
+  if (!negocio) {
+    return res
+      .status(404)
+      .set("Cache-Control", "private, no-store")
+      .send(
+        `DEBUG hostname=${hostname} | host=${req.headers.host} | xfh=${req.headers["x-forwarded-host"]} | req.hostname=${req.hostname}`,
+      );
+  }
+  try {
+    const response = await fetch(
+      "https://geinztech.com/fidelizacion/fidelizacion_client.html",
+    );
+    let html = await response.text();
+
+    html = html
+      .replace(/src="\.\/js\//g, 'src="https://geinztech.com/js/')
+      .replace(/href="\.\/style\//g, 'href="https://geinztech.com/style/')
+      .replace(/href="\.\/img\//g, 'href="https://geinztech.com/img/')
+      .replace(/src="\.\/img\//g, 'src="https://geinztech.com/img/')
+      .replace(/"\.\//g, '"https://geinztech.com/');
+
+    const inyeccion = `<script>window.__NEGOCIO_ID__=${JSON.stringify(negocio.id)};window.__NEGOCIO_LOCALIDAD__=${JSON.stringify(negocio.localidad)};window.__FIDELIZACION_CODIGO__=${JSON.stringify(codigo)};</script>`;
+    html = html.replace("</head>", `${inyeccion}</head>`);
+
+    res.set("Content-Type", "text/html");
+    return res.status(200).send(html);
+  } catch (e) {
+    logger.error("Error sirviendo fidelización:", e);
+    return res.status(500).send("Error interno");
+  }
+});
+exports.carritoSSR = onRequest(async (req, res) => {
+  const hostname = obtenerHostname(req);
+  const esGeinzCore =
+    hostname === "geinztech.com" || hostname === "www.geinztech.com";
+
+  // Si por algún motivo /carrito se pide directo en geinztech.com sin alias,
+  // no tenemos negocio que resolver: lo mandamos al home.
+  if (esGeinzCore) {
+    return res.redirect(302, "https://geinztech.com/");
+  }
+
+  const db = admin.firestore();
+  const negocio = await resolverNegocioPorDominio(db, hostname);
+  if (!negocio) {
+    return res
+      .status(404)
+      .set("Cache-Control", "private, no-store")
+      .send(
+        `DEBUG hostname=${hostname} | host=${req.headers.host} | xfh=${req.headers["x-forwarded-host"]} | req.hostname=${req.hostname}`,
+      );
+  }
+
+  try {
+    const response = await fetch("https://geinztech.com/carrito/carrito.html");
+    let html = await response.text();
+
+    html = html
+      .replace(/src="\.\/js\//g, 'src="https://geinztech.com/js/')
+      .replace(/href="\.\/style\//g, 'href="https://geinztech.com/style/')
+      .replace(/href="\.\/img\//g, 'href="https://geinztech.com/img/')
+      .replace(/src="\.\/img\//g, 'src="https://geinztech.com/img/')
+      .replace(/"\.\//g, '"https://geinztech.com/');
+
+    const inyeccion = `<script>window.__NEGOCIO_ID__=${JSON.stringify(negocio.id)};window.__NEGOCIO_LOCALIDAD__=${JSON.stringify(negocio.localidad)};</script>`;
+    html = html.replace("</head>", `${inyeccion}</head>`);
+
+    res.set("Content-Type", "text/html");
+    return res.status(200).send(html);
+  } catch (e) {
+    logger.error("Error sirviendo carrito.html:", e);
+    return res.status(500).send("Error interno");
+  }
+});
+exports.pedidoSSR = onRequest(async (req, res) => {
+  const hostname = obtenerHostname(req);
+  const esGeinzCore =
+    hostname === "geinztech.com" || hostname === "www.geinztech.com";
+
+  // /pedido/{pedidoId}
+  const pedidoId = req.path.replace(/^\/pedido\//, "").trim();
+  if (!pedidoId) return res.status(404).send("Pedido no especificado");
+
+  const db = admin.firestore();
+
+  let negocio;
+  if (esGeinzCore) {
+    // en geinztech.com no debería llegar tráfico aquí normalmente,
+    // pero por si acaso, podrías redirigir al home
+    return res.redirect(302, "https://geinztech.com/");
+  } else {
+    negocio = await resolverNegocioPorDominio(db, hostname);
+  }
+
+  if (!negocio) {
+    return res
+      .status(404)
+      .set("Cache-Control", "private, no-store")
+      .send(
+        `DEBUG hostname=${hostname} | host=${req.headers.host} | xfh=${req.headers["x-forwarded-host"]} | req.hostname=${req.hostname}`,
+      );
+  }
+
+  try {
+    const response = await fetch("https://geinztech.com/pedidos/pedidos.html");
+    let html = await response.text();
+
+    html = html
+      .replace(/src="\.\/js\//g, 'src="https://geinztech.com/js/')
+      .replace(/href="\.\/style\//g, 'href="https://geinztech.com/style/')
+      .replace(/href="\.\/img\//g, 'href="https://geinztech.com/img/')
+      .replace(/src="\.\/img\//g, 'src="https://geinztech.com/img/')
+      .replace(/"\.\//g, '"https://geinztech.com/');
+
+    const inyeccion = `<script>window.__NEGOCIO_ID__=${JSON.stringify(negocio.id)};window.__NEGOCIO_LOCALIDAD__=${JSON.stringify(negocio.localidad)};window.__NEGOCIO_HOSTNAME__=${JSON.stringify(hostname)};window.__NEGOCIO_ALIAS__=${JSON.stringify(negocio.alias || null)};</script>`;
+    html = html.replace("</head>", `${inyeccion}</head>`);
+
+    res.set("Content-Type", "text/html");
+    return res.status(200).send(html);
+  } catch (e) {
+    logger.error("Error sirviendo pedidoSSR:", e);
+    return res.status(500).send("Error interno");
+  }
+});
+// ───────────────────────────────────────────────────────────────
+// Resuelve un hostname custom → { id, localidad } de la tienda
+// Requiere una colección tipo "dominios_negocio" con doc(hostname)
+// ───────────────────────────────────────────────────────────────
+async function resolverNegocioPorDominio(db, hostname) {
+  const snap = await db.collection("dominio_web_tiendas").doc(hostname).get();
+  if (!snap.exists) return null;
+  const { id, localidad } = snap.data();
+  return { id, localidad };
+}
+
+async function manejarDominioCustom(req, res, db, hostname) {
+  res.set("Cache-Control", "no-store"); // <-- agregado aquí, antes de todo
+
+  const negocio = await resolverNegocioPorDominio(db, hostname);
+  if (!negocio) {
+    return res
+      .status(404)
+      .send(
+        `DEBUG hostname=${hostname} | host=${req.headers.host} | xfh=${req.headers["x-forwarded-host"]} | req.hostname=${req.hostname}`,
+      );
+  }
+
+  return manejarPerfil(req, res, db, {
+    id: negocio.id,
+    localidad: negocio.localidad,
+    promoId: req.query.p || null,
+    hostnameCustom: hostname,
+  });
+}
+// ───────────────────────────────────────────────────────────────
+// Lógica común: crawler vs cliente real, fetch de tienda, render
+// ───────────────────────────────────────────────────────────────
+async function manejarPerfil(
+  req,
+  res,
+  db,
+  { id, localidad, promoId, hostnameCustom },
+) {
   const userAgent = req.headers["user-agent"] || "";
   logger.info("UA →", userAgent);
 
@@ -3999,6 +4283,18 @@ exports.perfilSSR = onRequest(async (req, res) => {
     /whatsapp|telegram|twitterbot|facebookexternalhit|facebookbot|linkedinbot|slackbot|discordbot|skype|viber|line|snapchat|pinterest|vkshare|w3c_validator|curl|python|wget/i.test(
       userAgent,
     );
+
+  res.set("X-Debug-UA", userAgent || "VACIO");
+  res.set("X-Debug-EsCrawler", String(esCrawlerSEO));
+  res.set("X-Debug-EsPreview", String(esPreviewSocial));
+
+  const tiendaSnap = await paths.tiendaDoc(localidad, "tiendas", id).get();
+  if (!tiendaSnap.exists) return res.status(404).send("Tienda no disponible");
+  const t = tiendaSnap.data();
+
+  const url = hostnameCustom
+    ? `https://${hostnameCustom}/`
+    : `https://geinztech.com/perfil/${req.path.replace(/^\/perfil\//, "").trim()}`;
 
   if (!esCrawlerSEO && !esPreviewSocial) {
     try {
@@ -4010,61 +4306,52 @@ exports.perfilSSR = onRequest(async (req, res) => {
         .replace(/href="\.\/img\//g, 'href="https://geinztech.com/img/')
         .replace(/src="\.\/img\//g, 'src="https://geinztech.com/img/')
         .replace(/"\.\//g, '"https://geinztech.com/');
+
+      // Como ya no viaja el alias en la URL, el bundle cliente necesita
+      // enterarse de qué negocio cargar. Se lo inyectamos como globals:
+      const inyeccion = `<script>window.__NEGOCIO_ID__=${JSON.stringify(id)};window.__NEGOCIO_LOCALIDAD__=${JSON.stringify(localidad)};</script>`;
+      html = html.replace("</head>", `${inyeccion}</head>`);
+
       res.set("Content-Type", "text/html");
       return res.status(200).send(html);
     } catch (e) {
       logger.error("Error sirviendo perfil.html:", e);
-      return res.redirect(
-        302,
-        `https://geinztech.com/perfil/${encodeURIComponent(alias)}`,
+      return res.redirect(302, url);
+    }
+  }
+
+  const promoIdFinal = promoId;
+  const nombre = t.nombre_tienda || "Tienda en Geinz";
+  const descripcion = t.descripcion || "";
+  const descSeo = t.descripcion_seo || descripcion || "Encuéntralo en Geinz";
+  let logo = t.img_tienda?.logo_tienda || "https://geinztech.com/default.jpg";
+
+  const direccion = t.ubicacion?.dirección || "";
+  const referencia = t.ubicacion?.referencia || "";
+  const zona = t.ubicacion?.zona || "";
+  const categoriaLabel = t.categoria_tienda || "";
+  const subcats = (t.subcategoria ?? []).join(", ");
+  const telefono = t.metodo_contacto?.llamada?.numero || "";
+  const whatsapp = t.metodo_contacto?.whatsapp?.numero || "";
+  const facebook = t.metodo_contacto?.facebook?.url || "";
+  const instagram = t.metodo_contacto?.instagram?.url || "";
+  const tiktok = t.metodo_contacto?.tiktok?.url || "";
+
+  if (promoIdFinal) {
+    const promos = t.img_tienda?.lista_img?.promociones;
+    const promoImg = promos?.[promoIdFinal];
+    if (promoImg) {
+      logo = promoImg;
+    } else {
+      logger.warn(
+        `Promo "${promoIdFinal}" no encontrada en lista_img.promociones`,
       );
     }
   }
 
-  try {
-    const db = admin.firestore();
+  const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
 
-    const aliasSnap = await db.collection("alias_tiendas").doc(alias).get();
-    if (!aliasSnap.exists) return res.status(404).send("Perfil no encontrado");
-
-    const { id, localidad } = aliasSnap.data();
-    const tiendaSnap = await paths.tiendaDoc(localidad, "tiendas", id).get();
-    if (!tiendaSnap.exists) return res.status(404).send("Tienda no disponible");
-
-    const t = tiendaSnap.data();
-    const promoId = req.query.p || null;
-
-    const nombre = t.nombre_tienda || "Tienda en Geinz";
-    const descripcion = t.descripcion || "";
-    const descSeo = t.descripcion_seo || descripcion || "Encuéntralo en Geinz";
-    let logo = t.img_tienda?.logo_tienda || "https://geinztech.com/default.jpg";
-
-    const direccion = t.ubicacion?.dirección || "";
-    const referencia = t.ubicacion?.referencia || "";
-    const zona = t.ubicacion?.zona || "";
-    const categoriaLabel = t.categoria_tienda || "";
-    const subcats = (t.subcategoria ?? []).join(", ");
-    const telefono = t.metodo_contacto?.llamada?.numero || "";
-    const whatsapp = t.metodo_contacto?.whatsapp?.numero || "";
-    const facebook = t.metodo_contacto?.facebook?.url || "";
-    const instagram = t.metodo_contacto?.instagram?.url || "";
-    const tiktok = t.metodo_contacto?.tiktok?.url || "";
-    const url = `https://geinztech.com/perfil/${alias}`;
-
-    if (promoId) {
-      const promos = t.img_tienda?.lista_img?.promociones;
-      const promoImg = promos?.[promoId];
-      if (promoImg) {
-        logo = promoImg;
-      } else {
-        logger.warn(
-          `Promo "${promoId}" no encontrada en lista_img.promociones`,
-        );
-      }
-    }
-    const safe = (s) => (s || "").replace(/"/g, '\\"').replace(/\n/g, " ");
-
-    const ogHtml = `<!DOCTYPE html>
+  const ogHtml = `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -4130,13 +4417,8 @@ exports.perfilSSR = onRequest(async (req, res) => {
 </body>
 </html>`;
 
-    return res.status(200).send(ogHtml);
-  } catch (e) {
-    logger.error("perfilSSR error:", e);
-    return res.status(500).send("Error interno");
-  }
-});
-
+  return res.status(200).send(ogHtml);
+}
 // ─────────────────────────────────────────────
 // TURISMO SSR — Social Preview + Redirect SEO/Usuarios
 // ─────────────────────────────────────────────
@@ -5191,9 +5473,15 @@ exports.limpiarPromosExpiradas = onSchedule(
   },
 );
 
+// ==========================================
+// Envía a TODOS los tokens de un usuario, buscando por id_user
+// Ruta: Trabajadores_Usuarios_Drivers/users/tokens/{id_user}
+// Documento contiene: { tokens: { "NombreDispositivo": "token_fcm", ... } }
+// ==========================================
 
-
-
+// ==========================================
+// Función helper: envía UN push a UN token
+// ==========================================
 async function enviarNotificacionFCM_tienda_web({
   token,
   title,
@@ -5210,7 +5498,7 @@ async function enviarNotificacionFCM_tienda_web({
     webpush: {
       headers: {
         Urgency: prioridad === "high" ? "high" : "normal",
-        TTL: "86400", // 24h — cuánto tiempo el push server reintenta si el dispositivo está offline
+        TTL: "86400",
       },
       notification: {
         title: title,
@@ -5233,7 +5521,7 @@ async function enviarNotificacionFCM_tienda_web({
     },
     android: {
       priority: prioridad === "high" ? "high" : "normal",
-      ttl: 86400000, // en ms para android
+      ttl: 86400000,
       notification: {
         title: title,
         body: body,
@@ -5258,12 +5546,23 @@ async function enviarNotificacionFCM_tienda_web({
 
   try {
     const resultado = await admin.messaging().send(message);
-    console.log("✅ FCM enviado OK:", resultado, "→ token:", token.slice(0, 20) + "...");
+    console.log(
+      "✅ FCM enviado OK:",
+      resultado,
+      "→ token:",
+      token.slice(0, 20) + "...",
+    );
     return { success: true, messageId: resultado };
   } catch (error) {
-    console.error("❌ FCM falló:", error.code, "|", error.message, "→ token:", token.slice(0, 20) + "...");
+    console.error(
+      "❌ FCM falló:",
+      error.code,
+      "|",
+      error.message,
+      "→ token:",
+      token.slice(0, 20) + "...",
+    );
 
-    // Tokens muertos — esto es la causa #1 de "a veces no llega"
     const tokenInvalido =
       error.code === "messaging/registration-token-not-registered" ||
       error.code === "messaging/invalid-registration-token" ||
@@ -5278,54 +5577,137 @@ async function enviarNotificacionFCM_tienda_web({
   }
 }
 
-exports.enviar_notificacion_con_solo_id_desde_la_web = onRequest(async (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
+// ==========================================
+// Helpers de Firestore
+// ==========================================
+async function obtenerTokensDeUsuario(idUser) {
+  const docRef = admin
+    .firestore()
+    .collection("Trabajadores_Usuarios_Drivers")
+    .doc("users")
+    .collection("tokens")
+    .doc(idUser);
 
-  if (req.method === "OPTIONS") return res.status(204).send("");
-  if (req.method !== "POST") return res.status(405).send("Método no permitido");
+  const snap = await docRef.get();
 
-  try {
-    const {
-      token, title, body, link, logo,
-      id_tienda, idAnuncio, tipo_notificacion, prioridad,
-    } = req.body || {};
-
-    if (!token) {
-      return res.status(400).json({ ok: false, error: "Falta el parámetro 'token'" });
-    }
-    if (!title || !body) {
-      return res.status(400).json({ ok: false, error: "Faltan 'title' y/o 'body'" });
-    }
-
-    const resultado = await enviarNotificacionFCM_tienda_web({
-      token, title, body,
-      link: link || "https://geinztech.com",
-      logo: logo || "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
-      idTienda: id_tienda || "",
-      idAnuncio: idAnuncio || "",
-      tipo_notificacion: tipo_notificacion || "logo",
-      prioridad: prioridad || "high",
-    });
-
-    if (!resultado.success) {
-      // Ahora SÍ ves en Postman si el fallo fue real, no un "ok: true" falso
-      return res.status(resultado.tokenInvalido ? 410 : 500).json({
-        ok: false,
-        error: resultado.error,
-        code: resultado.code,
-        tokenInvalido: resultado.tokenInvalido,
-      });
-    }
-
-    return res.status(200).json({
-      ok: true,
-      mensaje: "Notificación enviada correctamente",
-      messageId: resultado.messageId,
-    });
-  } catch (error) {
-    console.error("🔥 Error inesperado:", error);
-    return res.status(500).json({ ok: false, error: error.message, code: error.code || null });
+  if (!snap.exists) {
+    return { docRef, tokensMap: {} };
   }
-});
+
+  const data = snap.data() || {};
+  const tokensMap = data.tokens || {};
+
+  return { docRef, tokensMap };
+}
+
+async function eliminarTokenInvalido(docRef, nombreDispositivo) {
+  try {
+    await docRef.update({
+      [`tokens.${nombreDispositivo}`]: admin.firestore.FieldValue.delete(),
+    });
+    console.log(`🧹 Token inválido eliminado: ${nombreDispositivo}`);
+  } catch (err) {
+    console.error(
+      `⚠️ No se pudo eliminar token inválido (${nombreDispositivo}):`,
+      err.message,
+    );
+  }
+}
+
+// ==========================================
+// Endpoint: envía por id_user (busca todos sus tokens)
+// NOMBRE ORIGINAL SIN CAMBIOS
+// ==========================================
+exports.enviar_notificacion_con_solo_id_desde_la_web = onRequest(
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST")
+      return res.status(405).send("Método no permitido");
+
+    try {
+      const {
+        id_user,
+        title,
+        body,
+        link,
+        logo,
+        id_tienda,
+        idAnuncio,
+        tipo_notificacion,
+        prioridad,
+      } = req.body || {};
+
+      if (!id_user) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "Falta el parámetro 'id_user'" });
+      }
+      if (!title || !body) {
+        return res
+          .status(400)
+          .json({ ok: false, error: "Faltan 'title' y/o 'body'" });
+      }
+
+      const { docRef, tokensMap } = await obtenerTokensDeUsuario(id_user);
+      const dispositivos = Object.entries(tokensMap);
+
+      if (dispositivos.length === 0) {
+        return res.status(404).json({
+          ok: false,
+          error: `No se encontraron tokens para el usuario '${id_user}'`,
+        });
+      }
+
+      const paramsBase = {
+        title,
+        body,
+        link: link || "https://geinztech.com",
+        logo:
+          logo ||
+          "https://firebasestorage.googleapis.com/v0/b/geinzworkapp.appspot.com/o/logo_geinz_webp.webp?alt=media&token=aa1ef1df-1bcd-48f2-9cad-a85929c3a8d0",
+        idTienda: id_tienda || "",
+        idAnuncio: idAnuncio || "",
+        tipo_notificacion: tipo_notificacion || "logo",
+        prioridad: prioridad || "high",
+      };
+
+      const resultados = await Promise.all(
+        dispositivos.map(async ([nombreDispositivo, token]) => {
+          const resultado = await enviarNotificacionFCM_tienda_web({
+            ...paramsBase,
+            token,
+          });
+
+          if (!resultado.success && resultado.tokenInvalido) {
+            await eliminarTokenInvalido(docRef, nombreDispositivo);
+          }
+
+          return { dispositivo: nombreDispositivo, ...resultado };
+        }),
+      );
+
+      const exitosos = resultados.filter((r) => r.success);
+      const fallidos = resultados.filter((r) => !r.success);
+
+      return res.status(200).json({
+        ok: exitosos.length > 0,
+        mensaje: `Enviado a ${exitosos.length}/${resultados.length} dispositivo(s)`,
+        exitosos: exitosos.map((r) => r.dispositivo),
+        fallidos: fallidos.map((r) => ({
+          dispositivo: r.dispositivo,
+          error: r.error,
+          code: r.code,
+        })),
+      });
+    } catch (error) {
+      console.error("🔥 Error inesperado:", error);
+      return res
+        .status(500)
+        .json({ ok: false, error: error.message, code: error.code || null });
+    }
+  },
+);
