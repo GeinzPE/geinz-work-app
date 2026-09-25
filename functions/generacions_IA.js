@@ -1154,7 +1154,11 @@ exports.crearPromocion = onCall(async (request) => {
       saldo_descuento,
       precio_por_moneda,
       tipo_paquete,
+      tipo_publicacion = "plataforma", // ← NUEVO
     } = data;
+
+    const esPerfil = tipo_publicacion === "perfil"; // ← NUEVO
+    console.log("📌 tipo_publicacion recibido:", tipo_publicacion, "| esPerfil:", esPerfil);
 
     // ── Validaciones ──────────────────────────────────────
     if (!id_tienda || !id_promocion || !localidad)
@@ -1166,31 +1170,32 @@ exports.crearPromocion = onCall(async (request) => {
         "Debes subir al menos una imagen",
       );
 
-    // ── PASO 0: Términos clave ────────────────────────────
+    // ── PASO 0: Términos clave (SOLO plataforma) ──────────
     let terminosClave = [];
 
-    if (Array.isArray(terminos_clave_ia) && terminos_clave_ia.length > 0) {
-      // El front ya los mandó (previsualización aprobada por el usuario)
-      terminosClave = terminos_clave_ia;
-      console.log("✅ Términos clave recibidos del front:", terminosClave);
-    } else {
-      // No vienen o vienen vacíos — los extraemos aquí
-      try {
-        const texto = `${titulo || ""} ${descripcion || ""}`.trim();
-        if (texto && categoria && nombre_tienda) {
-          console.log("🤖 Extrayendo términos clave con Gemini...");
-          terminosClave = await _extraerTerminosClave(
-            texto,
-            categoria,
-            nombre_tienda,
-          );
-          console.log("✅ Términos clave extraídos:", terminosClave);
+    if (!esPerfil) { // ← NUEVO: en perfil nunca se ejecuta esto
+      if (Array.isArray(terminos_clave_ia) && terminos_clave_ia.length > 0) {
+        terminosClave = terminos_clave_ia;
+        console.log("✅ Términos clave recibidos del front:", terminosClave);
+      } else {
+        try {
+          const texto = `${titulo || ""} ${descripcion || ""}`.trim();
+          if (texto && categoria && nombre_tienda) {
+            console.log("🤖 Extrayendo términos clave con Gemini...");
+            terminosClave = await _extraerTerminosClave(
+              texto,
+              categoria,
+              nombre_tienda,
+            );
+            console.log("✅ Términos clave extraídos:", terminosClave);
+          }
+        } catch (e) {
+          console.warn("⚠️ No se pudieron extraer términos clave:", e.message);
+          terminosClave = [];
         }
-      } catch (e) {
-        // No bloquea la publicación si Gemini falla
-        console.warn("⚠️ No se pudieron extraer términos clave:", e.message);
-        terminosClave = [];
       }
+    } else {
+      console.log("ℹ️ Publicación en perfil — se omite extracción de términos clave");
     }
 
     console.log("📌 terminos_clave_ia:", terminosClave);
@@ -1356,6 +1361,7 @@ exports.crearPromocion = onCall(async (request) => {
       expira_en_ttl: tsFin,
       terminos_clave: terminosClave,
       tipo_hora_dias: formato_fecha_hora,
+      tipo_publicacion, // ← NUEVO: queda guardado en el documento por si lo necesitas para filtrar/mostrar
       ubicacion: {
         direccion: direccion || "",
         lat: lat || 0.0,
@@ -1365,72 +1371,87 @@ exports.crearPromocion = onCall(async (request) => {
     };
 
     // ── PASO 5: Referencias Firestore ─────────────────────
-   const ref1 = paths.tiendaDoc(
-  localidadLower, "promos_ofertas", id_promocion,
-);
-const ref2 = paths.tiendaDoc(
-  localidadLower, "tiendas", id_tienda, "promociones_geinz", id_promocion,
-);
+    // ref2 (promociones_geinz dentro de la tienda) SIEMPRE se escribe,
+    // sea perfil o plataforma.
+    const ref2 = paths.tiendaDoc(
+      localidadLower, "tiendas", id_tienda, "promociones_geinz", id_promocion,
+    );
 
-    const ref3 = db
-      .collection("promociones_filtrado_algolia")
-      .doc(id_promocion);
-    const partes = rangoCalculado.split("-").map((s) => s.trim());
-    const precioMin = parseInt(partes[0]) || 0;
-    const precioMax = parseInt(partes[1]) || 0;
-    const algoliaData = {
-      activo: true,
-      categoria: categoria || "",
-      comodidades: comodidadesArray,
-      descripcion: descripcion || "",
-      horario_publicacion: horario_seleccion,
-      id_promocion,
-      id_tienda,
-      imagen_promo: img_bot || "",
-      localidad: localidadLower,
-      nombre_tienda: nombre_tienda || "",
-      objectID: id_promocion,
-      pagos: pagosArray,
-      precio: precioNum,
-      rango_precio: rangoCalculado,
-      terminos_clave: terminosClave,
-      timestamp_fin: tsFin.seconds * 1000,
-      timestamp_inicio: tsInicio.seconds * 1000,
-      expira_en_ttl: tsFin,
-      precio_min: precioMin,
-      precio_max: precioMax,
-    };
+    const writes = [ref2.set(promocionData, { merge: true })]; // ← NUEVO: array de escrituras dinámico
 
-    const ref4 = db.collection("promosFin").doc(id_promocion);
+    let ref1 = null; // ← NUEVO
+    if (!esPerfil) { // ← NUEVO: solo en modo plataforma se publica "afuera"
+      ref1 = paths.tiendaDoc(
+        localidadLower, "promos_ofertas", id_promocion,
+      );
 
-    const promoFinData = {
-      id_promocion,
-      id_tienda,
-      localidad: localidadLower,
-      numero: numero || "",
-      nombre_tienda: nombre_tienda || "",
-      titulo: titulo || "",
-      categoria: categoria || "",
-      terminos_clave: terminosClave,
-      expira_en_ttl: tsFin,
-    };
+      const ref3 = db
+        .collection("promociones_filtrado_algolia")
+        .doc(id_promocion);
+      const partes = rangoCalculado.split("-").map((s) => s.trim());
+      const precioMin = parseInt(partes[0]) || 0;
+      const precioMax = parseInt(partes[1]) || 0;
+      const algoliaData = {
+        activo: true,
+        categoria: categoria || "",
+        comodidades: comodidadesArray,
+        descripcion: descripcion || "",
+        horario_publicacion: horario_seleccion,
+        id_promocion,
+        id_tienda,
+        imagen_promo: img_bot || "",
+        localidad: localidadLower,
+        nombre_tienda: nombre_tienda || "",
+        objectID: id_promocion,
+        pagos: pagosArray,
+        precio: precioNum,
+        rango_precio: rangoCalculado,
+        terminos_clave: terminosClave,
+        timestamp_fin: tsFin.seconds * 1000,
+        timestamp_inicio: tsInicio.seconds * 1000,
+        expira_en_ttl: tsFin,
+        precio_min: precioMin,
+        precio_max: precioMax,
+      };
+
+      const ref4 = db.collection("promosFin").doc(id_promocion);
+
+      const promoFinData = {
+        id_promocion,
+        id_tienda,
+        localidad: localidadLower,
+        numero: numero || "",
+        nombre_tienda: nombre_tienda || "",
+        titulo: titulo || "",
+        categoria: categoria || "",
+        terminos_clave: terminosClave,
+        expira_en_ttl: tsFin,
+      };
+
+      writes.push(
+        ref1.set(promocionData, { merge: true }),
+        ref3.set(algoliaData, { merge: true }),
+        ref4.set(promoFinData, { merge: true }),
+      );
+    } else {
+      console.log("ℹ️ Publicación en perfil — se omite promos_ofertas, algolia y promosFin");
+    }
 
     // ── PASO 6: Escribir en Firestore ─────────────────────
-    await Promise.all([
-      ref1.set(promocionData, { merge: true }),
-      ref2.set(promocionData, { merge: true }),
-      ref3.set(algoliaData, { merge: true }),
-      ref4.set(promoFinData, { merge: true }),
-    ]);
+    await Promise.all(writes); // ← NUEVO: antes era un array fijo de 4, ahora es dinámico
 
-    console.log(`✅ Promoción guardada:
+    console.log(`✅ Promoción guardada (tipo_publicacion: ${tipo_publicacion}):
+  - ${paths.tiendaPathStr(localidadLower, "tiendas", id_tienda, "promociones_geinz", id_promocion)}${
+    !esPerfil
+      ? `
   - ${paths.tiendaPathStr(localidadLower, "promos_ofertas", id_promocion)}
-  - ${paths.tiendaPathStr(localidadLower, "tiendas", id_tienda, "promociones_geinz", id_promocion)}
   - promociones_filtrado_algolia/${id_promocion}
-  - promosFin/${id_promocion}`);
+  - promosFin/${id_promocion}`
+      : ""
+  }`);
 
-    // ── PASO 7: Descuento de puntos y historial financiero ─
-    if (saldo_descuento && precio_por_moneda) {
+    // ── PASO 7: Descuento de puntos y historial financiero (SOLO plataforma) ─
+    if (!esPerfil && saldo_descuento && precio_por_moneda) { // ← NUEVO: !esPerfil agregado
       const monto_descontado = saldo_descuento;
       const monto_restante = (saldo_actual || 0) - monto_descontado;
       const precio_soles = (
@@ -1475,6 +1496,8 @@ const ref2 = paths.tiendaDoc(
         });
 
       console.log("✅ Historial financiero guardado:", id_transaccion);
+    } else if (esPerfil) { // ← NUEVO
+      console.log("ℹ️ Publicación en perfil — sin cobro ni historial financiero");
     } else {
       console.log("ℹ️ Sin datos financieros — historial no guardado");
     }
@@ -1484,6 +1507,7 @@ const ref2 = paths.tiendaDoc(
       id_promocion,
       id_tienda,
       localidad,
+      tipo_publicacion, // ← NUEVO
       terminos_clave: terminosClave,
       mensaje: "Promoción guardada exitosamente",
     };
