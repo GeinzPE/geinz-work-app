@@ -224,6 +224,11 @@ exports.telegramWebhook = onRequest(
   telegramWebhook,
 );
 
+
+exports.carritoShare = require("./share_domains_saas/carrito_share.js").carritoShare;
+
+exports.perfilShare = require("./share_domains_saas/perfil_share.js").perfilShare;
+
 /*
 const { checkScheduledPublications, telegramWebhook_aprende_code } = require('./bot_aprende_code/telegram.js');
 
