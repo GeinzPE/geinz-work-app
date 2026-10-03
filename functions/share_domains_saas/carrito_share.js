@@ -120,8 +120,13 @@ async function cargarOferta(ref, biz, ofertaId) {
   }
 
   // Promoción normal (img_tienda.lista_img.promociones)
-  const p = biz.img_tienda?.lista_img?.promociones?.[ofertaId];
-  if (!p || typeof p !== "object") return null;
+  const promos = biz.img_tienda?.lista_img?.promociones || {};
+  let p = promos[ofertaId];
+  if (typeof p === "string") p = { imagen: p }; // formato viejo (solo URL)
+  if (!p || typeof p !== "object") {
+    console.warn("carritoShare: promo no encontrada", ofertaId, Object.keys(promos));
+    return null;
+  }
   return {
     titulo: p.descripcion || "Promoción",
     descripcion: p.descripcion || "",
@@ -176,7 +181,7 @@ const carritoShare = onRequest(
           const biz = bizSnap.exists ? bizSnap.data() : {};
           const negocio = biz.nombre_tienda || biz.nombre || "Geinz";
           const o = await cargarOferta(ref, biz, ofertaId);
-
+console.log("carritoShare oferta:", ofertaId, o ? "OK" : "NO ENCONTRADA", o?.imagen);
           const titulo = o
             ? `${o.titulo}${o.precio > 0 ? ` · S/ ${o.precio.toFixed(2)}` : ""} — ${negocio}`
             : `Ofertas de ${negocio}`;
