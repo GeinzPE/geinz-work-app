@@ -26,4 +26,3 @@ functions/.env
 # 🗑️ OS
 .DS_Store
 Thumbs.db
-functions/granjabots/granjabots_elevenlabs.js

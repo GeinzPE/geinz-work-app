@@ -266,20 +266,19 @@ const { generarSonidosMesas } = require("./voces_mesas/mesa_voces.js");
 
 exports.generarSonidosMesas = generarSonidosMesas;
 
-const {
-  telegramWebhook_gastos_geinz_bot,
-  dailyCheck,
-  weeklyReport,
-  monthlyReport,
-  debtReminderCheck,
-} = require("./bot_gastos_data/gastos.js");
+// const {
+//   telegramWebhook_gastos_geinz_bot,
+//   dailyCheck,
+//   weeklyReport,
+//   monthlyReport,
+//   debtReminderCheck,
+// } = require("./bot_gastos_data/gastos.js");
 
-exports.telegramWebhook_gastos_geinz_bot = telegramWebhook_gastos_geinz_bot;
-exports.dailyCheck = dailyCheck;
-exports.weeklyReport = weeklyReport;
-exports.monthlyReport = monthlyReport;
-exports.debtReminderCheck = debtReminderCheck;
-
+// exports.telegramWebhook_gastos_geinz_bot = telegramWebhook_gastos_geinz_bot;
+// exports.dailyCheck = dailyCheck;
+// exports.weeklyReport = weeklyReport;
+// exports.monthlyReport = monthlyReport;
+// exports.debtReminderCheck = debtReminderCheck;
 const {
   generarDocumentoLegal,
 } = require("./generarDocumentoLegal/generarDocumentoLegal.js");
